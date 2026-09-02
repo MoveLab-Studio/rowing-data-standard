@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -12,6 +11,11 @@ from .codec import decode
 from .constants import APPLICATION_ID, RecordingStrategy
 from .fields import FieldDef, field_by_id, field_by_name
 from .model import ATTR_BY_FIELD_ID, Lap, Record, RowingSession
+from .validation import Issue
+
+# Garmin FIT profile number for cycle_length16 (UINT16, scale 100). fitparse
+# 1.2.0 does not name this field, so readers must also match unknown_87.
+_CYCLE_LENGTH16_DEF_NUM = 87
 
 _NATIVE_NAMES = {
     "timestamp",
@@ -25,16 +29,16 @@ _NATIVE_NAMES = {
     "position_long",
     "total_cycles",
     "cycle_length16",
-    "cycle_length",
+    f"unknown_{_CYCLE_LENGTH16_DEF_NUM}",
 }
 
 
 def read_fit(path: str | Path) -> RowingSession:
-    """Parse ``path`` and return a session in physical units."""
+    """Parse ``path`` and return a session in physical units (Draft v0.1)."""
     fit = FitFile(str(path), check_crc=False)
     messages = list(fit.messages)
     our_indexes = _developer_indexes_for_app(messages)
-    scales = _developer_scales(messages, our_indexes)
+    our_fields, issues = _our_developer_fields(messages, our_indexes)
 
     strategy = RecordingStrategy.UNKNOWN
     start_time: datetime | None = None
@@ -44,17 +48,14 @@ def read_fit(path: str | Path) -> RowingSession:
         start_time = _as_datetime(message.get_value("start_time")) or _as_datetime(
             message.get_value("timestamp")
         )
-        raw_strategy = _developer_raw(message, "RecordingStrategy")
-        if raw_strategy is not None:
-            try:
-                strategy = RecordingStrategy(int(raw_strategy))
-            except ValueError:
-                strategy = RecordingStrategy.UNKNOWN
+        strategy, strategy_issue = _recording_strategy(message, our_fields)
+        if strategy_issue is not None:
+            issues.append(strategy_issue)
         break
 
     laps = _laps(messages)
     records = tuple(
-        _record(message, scales, laps)
+        _record(message, our_fields, laps)
         for message in messages
         if message.name == "record"
     )
@@ -63,6 +64,7 @@ def read_fit(path: str | Path) -> RowingSession:
         recording_strategy=strategy,
         laps=tuple(laps),
         start_time=start_time,
+        read_issues=tuple(issues),
     )
 
 
@@ -89,9 +91,17 @@ def _developer_indexes_for_app(messages: list) -> set[int]:
     return indexes
 
 
-def _developer_scales(messages: list, our_indexes: set[int]) -> dict[str, FieldDef]:
-    """Map developer field name -> FieldDef using the file's scale when present."""
+def _our_developer_fields(
+    messages: list, our_indexes: set[int]
+) -> tuple[dict[str, FieldDef], list[Issue]]:
+    """Map names to registry FieldDefs for the standard application UUID only.
+
+    Decode always uses Draft v0.1 scales/units. A file that advertises a
+    different scale (for example pre-v1.2 DriveLength in metres) is not
+    converted; a warning is recorded instead.
+    """
     by_name: dict[str, FieldDef] = {}
+    issues: list[Issue] = []
     for message in messages:
         if message.name != "field_description":
             continue
@@ -107,24 +117,46 @@ def _developer_scales(messages: list, our_indexes: set[int]) -> dict[str, FieldD
         except KeyError:
             continue
         file_scale = message.get_value("scale")
-        if file_scale in (None, 0):
-            field = registry
-        else:
-            field = replace(registry, scale=float(file_scale))
-        by_name[registry.name] = field
+        if (
+            file_scale not in (None, 0)
+            and float(file_scale) != float(registry.scale)
+        ):
+            issues.append(
+                Issue(
+                    "warning",
+                    "field_scale",
+                    f"{registry.name} (ID {registry.field_id}) has file scale "
+                    f"{file_scale}, Draft v0.1 scale is {registry.scale}; "
+                    "decoded with v0.1 units, not converted",
+                )
+            )
+        by_name[registry.name] = registry
         if name:
-            by_name[str(name)] = field
-    return by_name
+            by_name[str(name)] = registry
+    return by_name, issues
 
 
-def _developer_raw(message, name: str) -> int | None:
-    field = message.get(name)
+def _recording_strategy(
+    message, our_fields: dict[str, FieldDef]
+) -> tuple[RecordingStrategy, Issue | None]:
+    spec = our_fields.get("RecordingStrategy")
+    if spec is None or spec.field_id != 10:
+        return RecordingStrategy.UNKNOWN, None
+    field = message.get("RecordingStrategy")
     if field is None or field.raw_value is None:
-        return None
+        return RecordingStrategy.UNKNOWN, None
     raw = field.raw_value
     if isinstance(raw, list | tuple):
-        return None
-    return int(raw)
+        return RecordingStrategy.UNKNOWN, None
+    value = int(raw)
+    try:
+        return RecordingStrategy(value), None
+    except ValueError:
+        return RecordingStrategy.UNKNOWN, Issue(
+            "warning",
+            "recording_strategy",
+            f"RecordingStrategy {value} is not 0, 1, or 2; treating as Unknown",
+        )
 
 
 def _as_datetime(value: object) -> datetime | None:
@@ -172,7 +204,7 @@ def _lap_index(timestamp: datetime, laps: list[Lap]) -> int | None:
     return index
 
 
-def _record(message, scales: dict[str, FieldDef], laps: list[Lap]) -> Record:
+def _record(message, our_fields: dict[str, FieldDef], laps: list[Lap]) -> Record:
     timestamp = _as_datetime(message.get_value("timestamp"))
     if timestamp is None:
         raise ValueError("record message is missing timestamp")
@@ -193,19 +225,11 @@ def _record(message, scales: dict[str, FieldDef], laps: list[Lap]) -> Record:
     }
 
     for field in message:
-        if field.name in _NATIVE_NAMES or field.name in {
-            "unknown",
-            None,
-        }:
+        if field.name in _NATIVE_NAMES or field.name in {"unknown", None}:
             continue
-        spec = scales.get(field.name)
-        if spec is None:
-            try:
-                spec = field_by_name(field.name)
-            except KeyError:
-                continue
-            if spec.native or spec.field_id is None:
-                continue
+        spec = our_fields.get(field.name)
+        if spec is None or spec.native or spec.field_id is None:
+            continue
         attr = ATTR_BY_FIELD_ID.get(spec.field_id)
         if attr is None:
             continue
@@ -239,10 +263,15 @@ def _native_raw(message, name: str) -> int | None:
 
 
 def _cycle_length_m(message) -> float | None:
-    field = message.get("cycle_length16")
-    if field is not None and field.raw_value is not None:
-        return decode(field_by_name("cycle_length16"), int(field.raw_value))
-    value = message.get_value("cycle_length")
-    if value is None:
-        return None
-    return float(value)
+    spec = field_by_name("cycle_length16")
+    for field in message:
+        if field.name not in (
+            "cycle_length16",
+            f"unknown_{_CYCLE_LENGTH16_DEF_NUM}",
+        ):
+            continue
+        raw = field.raw_value
+        if raw is None or isinstance(raw, list | tuple):
+            return None
+        return decode(spec, int(raw))
+    return None

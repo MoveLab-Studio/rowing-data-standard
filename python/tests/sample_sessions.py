@@ -28,6 +28,7 @@ def stroke_boundary_session() -> RowingSession:
                 drive_length_mm=1420,
                 stroke_drive_time_ms=450,
                 stroke_recovery_time_ms=1650,
+                cycle_length_m=8.5,
                 average_drive_force_n=412.3,
                 peak_drive_force_n=780.0,
                 stroke_work_j=250,

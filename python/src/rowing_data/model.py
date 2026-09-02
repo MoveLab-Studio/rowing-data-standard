@@ -60,6 +60,8 @@ class RowingSession:
     recording_strategy: RecordingStrategy = RecordingStrategy.UNKNOWN
     laps: tuple[Lap, ...] = field(default_factory=tuple)
     start_time: datetime | None = None
+    # Warnings collected by read_fit (invalid RecordingStrategy, pre-v1.2 scales).
+    read_issues: tuple = ()
 
     def session_start(self) -> datetime:
         if self.start_time is not None:
@@ -89,3 +91,17 @@ RECORD_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
 )
 
 ATTR_BY_FIELD_ID = dict(RECORD_DEVELOPER_ATTRS)
+
+# Record attributes that map to native FIT fields in spec §4.
+NATIVE_RECORD_ATTRS: Sequence[tuple[str, str]] = (
+    ("distance_m", "distance"),
+    ("cadence", "cadence"),
+    ("fractional_cadence", "fractional_cadence"),
+    ("heart_rate", "heart_rate"),
+    ("power", "power"),
+    ("enhanced_speed_mps", "enhanced_speed"),
+    ("position_lat", "position_lat"),
+    ("position_long", "position_long"),
+    ("total_cycles", "total_cycles"),
+    ("cycle_length_m", "cycle_length16"),
+)

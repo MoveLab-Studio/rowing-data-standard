@@ -7,6 +7,7 @@ from pathlib import Path
 
 from fit_tool.base_type import BaseType as FitBaseType
 from fit_tool.developer_field import DeveloperField
+from fit_tool.field import Field
 from fit_tool.fit_file_builder import FitFileBuilder
 from fit_tool.profile.messages.activity_message import ActivityMessage
 from fit_tool.profile.messages.developer_data_id_message import DeveloperDataIdMessage
@@ -27,8 +28,8 @@ from fit_tool.profile.profile_type import (
 )
 
 from .codec import encode
-from .constants import APPLICATION_ID
-from .fields import BaseType, FieldDef, field_by_id
+from .constants import APPLICATION_ID, CYCLE_LENGTH16_SCALE
+from .fields import BaseType, FieldDef, field_by_id, field_by_name
 from .model import RECORD_DEVELOPER_ATTRS, Record, RowingSession
 from .strokes import native_cadence_parts
 
@@ -47,6 +48,9 @@ _BASE_TYPE_SIZE = {
     BaseType.SINT16: 2,
     BaseType.SINT32: 4,
 }
+
+# Garmin FIT profile: cycle_length16 is field 87 (UINT16, metres, scale 100).
+_CYCLE_LENGTH16_FIELD_ID = 87
 
 # FIT stores lat/long as semicircles; fit-tool's setter takes degrees.
 _DEGREES_PER_SEMICIRCLE = 180.0 / (1 << 31)
@@ -220,27 +224,57 @@ def _record_message(
 
     rec = RecordMessage(developer_fields=dev_fields) if dev_fields else RecordMessage()
     rec.timestamp = _unix_ms(record.timestamp)
-    if record.distance_m is not None:
-        rec.distance = float(record.distance_m)
+    _set_native_fields(rec, record)
     cadence, fraction = _native_cadence(record)
     if cadence is not None:
+        encode(field_by_name("cadence"), cadence)
         rec.cadence = cadence
     if fraction is not None:
+        encode(field_by_name("fractional_cadence"), fraction)
         rec.fractional_cadence = fraction
+    return rec
+
+
+def _set_native_fields(rec: RecordMessage, record: Record) -> None:
+    if record.distance_m is not None:
+        encode(field_by_name("distance"), record.distance_m)
+        rec.distance = float(record.distance_m)
     if record.heart_rate is not None:
+        encode(field_by_name("heart_rate"), record.heart_rate)
         rec.heart_rate = record.heart_rate
     if record.power is not None:
+        encode(field_by_name("power"), record.power)
         rec.power = record.power
     if record.enhanced_speed_mps is not None:
+        encode(field_by_name("enhanced_speed"), record.enhanced_speed_mps)
         rec.enhanced_speed = float(record.enhanced_speed_mps)
     if record.total_cycles is not None:
+        encode(field_by_name("total_cycles"), record.total_cycles)
         rec.total_cycles = record.total_cycles
-    # fit-tool 0.9.14 has cycle_length (UINT8, max ~2.54 m), not cycle_length16.
+    if record.cycle_length_m is not None:
+        _set_cycle_length16(rec, record.cycle_length_m)
     if record.position_lat is not None:
+        encode(field_by_name("position_lat"), record.position_lat)
         rec.position_lat = record.position_lat * _DEGREES_PER_SEMICIRCLE
     if record.position_long is not None:
+        encode(field_by_name("position_long"), record.position_long)
         rec.position_long = record.position_long * _DEGREES_PER_SEMICIRCLE
-    return rec
+
+
+def _set_cycle_length16(rec: RecordMessage, metres: float) -> None:
+    encode(field_by_name("cycle_length16"), metres)
+    extra = Field(
+        name="cycle_length16",
+        field_id=_CYCLE_LENGTH16_FIELD_ID,
+        base_type=FitBaseType.UINT16,
+        offset=0,
+        scale=float(CYCLE_LENGTH16_SCALE),
+        size=2,
+        units="m",
+        growable=True,
+    )
+    extra.set_value(0, metres)
+    rec.fields.append(extra)
 
 
 def _attr_for_field_id(field_id: int | None) -> str:

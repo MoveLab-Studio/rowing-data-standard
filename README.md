@@ -63,9 +63,10 @@ python/                   Draft v0.1 Python library (Levels 1–2 FIT read/write
 ```
 
 A small Python package lives in [`python/`](python/README.md). It implements
-**Draft v0.1** only (native FIT fields plus core developer fields). It is not a
-certified or ratified implementation. Install with
-`pip install -e "./python[dev]"` (Python 3.11+).
+**Draft v0.1** Levels 1–2: native FIT fields, core developer fields 0–9 and 19,
+StrokeRate 93, and Session RecordingStrategy 10. It is not a certified or
+ratified implementation, and it does not implement oarlock, dual-oarlock, or
+in-stroke curves. Install with `pip install -e "./python[dev]"` (Python 3.11+).
 
 ## How to take part
 

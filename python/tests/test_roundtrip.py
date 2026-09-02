@@ -92,6 +92,8 @@ def _assert_record_roundtrip(got: Record, want: Record) -> None:
     assert got.stroke_work_j == want.stroke_work_j
     assert got.heart_rate == want.heart_rate
     assert got.power == want.power
+    if want.cycle_length_m is not None:
+        assert got.cycle_length_m == pytest.approx(want.cycle_length_m, abs=0.01)
     if want.enhanced_speed_mps is not None:
         assert got.enhanced_speed_mps == pytest.approx(
             want.enhanced_speed_mps, abs=0.001

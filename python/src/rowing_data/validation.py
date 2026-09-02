@@ -9,9 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .codec import CodecError, encode
-from .constants import RecordingStrategy
-from .fields import field_by_id
-from .model import RECORD_DEVELOPER_ATTRS, Record, RowingSession
+from .fields import field_by_id, field_by_name
+from .model import NATIVE_RECORD_ATTRS, RECORD_DEVELOPER_ATTRS, Record, RowingSession
 
 # Informative typical ranges from spec §8.1 — not encoding limits.
 _TYPICAL = {
@@ -32,21 +31,7 @@ class Issue:
 
 def validate(session: RowingSession) -> list[Issue]:
     """Return errors and warnings. Does not modify ``session``."""
-    issues: list[Issue] = []
-    if int(session.recording_strategy) not in (
-        RecordingStrategy.UNKNOWN,
-        RecordingStrategy.STROKE_BOUNDARY,
-        RecordingStrategy.GPS_UPDATE,
-    ):
-        issues.append(
-            Issue(
-                "error",
-                "recording_strategy",
-                f"RecordingStrategy {int(session.recording_strategy)} "
-                "is not 0, 1, or 2",
-            )
-        )
-
+    issues: list[Issue] = list(session.read_issues)
     for index, record in enumerate(session.records):
         issues.extend(_record_issues(record, index))
     return issues
@@ -75,6 +60,15 @@ def _record_issues(record: Record, index: int) -> list[Issue]:
                         index,
                     )
                 )
+
+    for attr, native_name in NATIVE_RECORD_ATTRS:
+        physical = getattr(record, attr)
+        if physical is None:
+            continue
+        try:
+            encode(field_by_name(native_name), physical)
+        except CodecError as exc:
+            issues.append(Issue("error", "overflow", str(exc), index))
 
     rate = record.resolved_stroke_rate()
     drive = record.stroke_drive_time_ms

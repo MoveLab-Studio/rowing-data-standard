@@ -1,5 +1,7 @@
 # rowing-data (Python)
 
+[![Python sample](https://github.com/MoveLab-Studio/rowing-data-standard/actions/workflows/python.yml/badge.svg)](https://github.com/MoveLab-Studio/rowing-data-standard/actions/workflows/python.yml)
+
 A **draft** Python implementation of the [Rowing Data Standard](../spec/FIT_STANDARD.md).
 
 This package implements **Draft v0.1**, which is not ratified. Field IDs, scales
@@ -59,3 +61,9 @@ cd python
 pytest
 ruff check src tests
 ```
+
+CI runs exactly these two commands on Python 3.11, 3.12 and 3.13
+([`.github/workflows/python.yml`](../.github/workflows/python.yml)), and only
+when something under `python/` changes. The interop test against the
+`rowingdata` golden FIT file skips on CI, since that file is not in this
+repository.

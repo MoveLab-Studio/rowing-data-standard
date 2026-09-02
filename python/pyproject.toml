@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools==75.8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rowing-data"
+version = "0.1.0"
+description = "Draft Python implementation of the Rowing Data Standard (Garmin FIT developer fields)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "UNLICENSED" }
+dependencies = [
+    "fit-tool==0.9.14",
+    "fitparse==1.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.5",
+    "ruff==0.11.2",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]

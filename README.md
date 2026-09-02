@@ -59,7 +59,13 @@ statement here should be read as an endorsement on behalf of any organisation.
 spec/FIT_STANDARD.md      The specification draft — the actual deliverable
 registry/field-ids.md     Registry of every allocated developer field ID
 proposals/                Substantive change proposals, one file each
+python/                   Draft v0.1 Python library (Levels 1–2 FIT read/write)
 ```
+
+A small Python package lives in [`python/`](python/README.md). It implements
+**Draft v0.1** only (native FIT fields plus core developer fields). It is not a
+certified or ratified implementation. Install with
+`pip install -e "./python[dev]"` (Python 3.11+).
 
 ## How to take part
 

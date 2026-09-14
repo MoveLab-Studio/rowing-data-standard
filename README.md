@@ -90,6 +90,30 @@ here has a commercial position in rowing hardware or software — that is the
 point, not a problem. "Our device already does it this way" is a legitimate and
 often decisive argument; it just needs saying out loud.
 
+## Using AI
+
+**Using an AI assistant here is fine.** Use whatever tools get the work done.
+
+What does not change is that you are the author. A pull request or a proposal is
+your argument, and you have to be able to defend it on the thread without going
+back to the model. If you cannot say why a field is scaled the way it is, the
+review has nowhere to go — and reviewer attention is the scarcest thing this
+project has.
+
+Two failure modes are worth naming, because both cost something specific here:
+
+- **Invented specifics.** Models are fluent about field IDs, scales, units and
+  section numbers, and will cheerfully produce ones that do not exist. Check
+  anything concrete against [`registry/field-ids.md`](registry/field-ids.md) and
+  the specification text itself before you send it.
+- **Volume.** A generated proposal is long, confident and evenly weighted, which
+  reads like thoroughness and reviews like noise. Say the thing in a paragraph.
+
+The existing rules do the rest of the work. Anything that changes what goes into
+a file still has to be demonstrated in a working implementation — generated code
+that round-trips a real FIT file is evidence; generated prose describing it is
+not.
+
 ## Licensing
 
 **Unresolved, and it affects contributors.** There is deliberately no `LICENSE`

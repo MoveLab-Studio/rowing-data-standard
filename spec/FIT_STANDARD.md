@@ -401,7 +401,7 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 | 200-211 | Dual oarlock per-side | Assigned |
 | 212-255 | Reserved for future extensions | Available |
 
-### 9.2 Deprecated Fields
+### 9.2 Retired Fields
 
 | Field ID | Name | Base Type | Scale | Units | Status | Replacement |
 |----------|------|-----------|-------|-------|--------|-------------|

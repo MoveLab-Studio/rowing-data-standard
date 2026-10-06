@@ -68,7 +68,7 @@ Free capacity today: **104 fields** in 93 and 97–199, plus 43 reserved in 212�
 | 3 | `StrokeRecoveryTime` | UINT16 | 1 | ms | Recovery phase duration |
 | 6 | `AverageDriveForce` | UINT16 | 10 | N | Average force over the drive |
 | 7 | `PeakDriveForce` | UINT16 | 10 | N | Peak force over the drive |
-| 8 | `AverageBoatSpeed` | UINT16 | 255 | m/s | Averaged over the stroke |
+| 8 | `AverageBoatSpeed` | UINT16 | 100 | m/s | Averaged over the stroke. Was scale 255 before protocol version 1 |
 | 9 | `WorkoutState` | UINT8 | 1 | — | Values of the native FIT `intensity` enum: `0` Active, `1` Rest, `2` Warmup, `3` Cooldown, `4` Recovery, `5` Interval, `6` Other |
 | 19 | `StrokeWork` | UINT16 | 1 | J | Full stroke cycle, not drive-only |
 | 96 | `StrokeState` | UINT8 | 1 | — | `0` Unknown, `1` Waiting, `2` Drive, `3` Dwell, `4` Recovery. Only with `RecordingStrategy` TimeSampled |

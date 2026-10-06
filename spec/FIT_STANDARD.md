@@ -182,8 +182,8 @@ Producers SHOULD use these native FIT fields for rowing data:
 | StrokeDriveTime | 1 | UINT16 | 1 | ms | Duration of drive phase | 300-600 ms |
 | DragFactor | 2 | UINT16 | 1 | | Resistance setting (ergometer) | Device-specific |
 | StrokeRecoveryTime | 3 | UINT16 | 1 | ms | Duration of recovery phase | 500-1500 ms |
-| AverageDriveForceN | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
-| PeakDriveForceN | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
+| AverageDriveForce | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
+| PeakDriveForce | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
 | AverageBoatSpeed | 8 | UINT16 | 255 | m/s | Average boat speed during stroke | 3-6 m/s |
 | WorkoutState | 9 | UINT8 | 1 | | Rowing state indicator | See WorkoutState values |
 | StrokeWork | 19 | UINT16 | 1 | J | Work done over full stroke cycle | 100-500 J |

@@ -74,7 +74,7 @@ class RowingSession:
         return stroke_counts([record.total_cycles for record in self.records])
 
 
-# Record attributes that map to developer field IDs (Levels 1–2).
+# Record attributes that map to developer field IDs (core fields).
 RECORD_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
     (0, "drive_length_mm"),
     (1, "stroke_drive_time_ms"),

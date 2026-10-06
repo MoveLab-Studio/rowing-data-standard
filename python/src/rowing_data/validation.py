@@ -1,4 +1,4 @@
-"""Conformance checks for a RowingSession (Draft v0.1, Levels 1–2).
+"""Conformance checks for a RowingSession (Draft v0.1, core fields).
 
 Hard errors are type-limit violations and an unknown RecordingStrategy value.
 Typical-range and timing consistency checks are warnings only (§8).

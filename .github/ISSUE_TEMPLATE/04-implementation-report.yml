@@ -27,16 +27,6 @@ body:
         - Both
     validations:
       required: true
-  - type: dropdown
-    id: level
-    attributes:
-      label: Compliance level attempted
-      options:
-        - "Level 1 — native FIT fields"
-        - "Level 2 — core rowing metrics"
-        - "Level 3 — oarlock metrics and in-stroke axis metadata"
-        - "Level 4 — dual oarlock and multiple curve types"
-        - "Not sure / partial"
   - type: textarea
     id: worked
     attributes:

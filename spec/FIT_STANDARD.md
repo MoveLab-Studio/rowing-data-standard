@@ -410,18 +410,6 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 
 Producers SHOULD use Newtons for new implementations. Consumers MUST continue to support pounds for backward compatibility.
 
-## 10. Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 0.1 | 2026-08-31 | Renumbered from 1.2 on adoption by the governance group, to stop a `1.x` number implying a ratified standard. No technical change. See the status banner at the top of this document. |
-| 1.2 | 2026-08-03 | Precision upgrades: length fields in mm (DriveLength, PeakForcePositionAbs, EffectiveLength); AverageBoatSpeed scale 255; StrokeRate developer field (ID 93); fractional_cadence native field; force-curve Y-scale and abscissa registry; §8.1 value-range guidance |
-| 1.1 | 2026-05-14 | FIT SDK compliance updates: Application ID changed to 16-byte UUID (89e86158-6d47-5c98-9d46-7d29437f27b9); Curve arrays changed from SINT16 to UINT16 for developer field compatibility |
-| 1.0 | 2026-05-13 | Initial standard release |
-
-Versions **1.0 to 1.2** predate this repository and its governance group. They
-are retained in this table because existing files and implementations cite them.
-
 ## Appendix A: Terminology
 
 **Stroke Cycle:** Complete rowing motion from catch through drive and recovery back to catch.

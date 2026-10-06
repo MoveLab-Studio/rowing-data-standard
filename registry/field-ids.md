@@ -18,7 +18,7 @@ Encoding       : 16-byte array in DeveloperDataIdMessage, per FIT SDK
 ```
 
 **Why this file exists.** The FIT developer field ID space is a single byte —
-0 to 255 — shared by every field this standard will ever define. It is the one
+0 to 254, since 255 is the FIT invalid value for a byte — shared by every field this standard will ever define. It is the one
 genuinely scarce resource in the project. This table is the single place to check
 before using a number, and no ID should appear in a shipped product until it is
 recorded here. Two vendors independently picking ID 94 is exactly the failure
@@ -41,9 +41,9 @@ because files carrying it already exist.
 | 96 | `StrokeState` | Assigned |
 | 97–199 | Extended standard fields | **Available** |
 | 200–211 | Dual oarlock, per side | Assigned |
-| 212–255 | Future extensions | **Reserved** |
+| 212–254 | Future extensions | **Reserved** |
 
-Free capacity today: **106 fields** in 93–95 and 97–199, plus 44 reserved in 212–255, plus
+Free capacity today: **106 fields** in 93–95 and 97–199, plus 43 reserved in 212–254, plus
 whatever of 20–89 the curve allocation does not consume.
 
 ## Assigned fields

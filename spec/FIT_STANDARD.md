@@ -433,6 +433,8 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 
 ### 9.1 Reserved ID Ranges
 
+A developer field number is a single byte (`field_definition_number`, UINT8), and 255 is the FIT invalid value for that type. Field IDs therefore range from 0 to 254. This is a hard limit of the FIT format, not an allocation choice of this standard.
+
 | Range | Purpose | Status |
 |-------|---------|--------|
 | 0-19 | Core rowing metrics | Assigned |
@@ -441,7 +443,7 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 | 90-92 | In-stroke axis metadata | Assigned |
 | 93-199 | Extended standard fields | StrokeState (96) assigned; remainder available |
 | 200-211 | Dual oarlock per-side | Assigned |
-| 212-255 | Reserved for future extensions | Available |
+| 212-254 | Reserved for future extensions | Available |
 
 ## 10. Version History
 

@@ -72,7 +72,23 @@ All developer fields defined in this standard MUST use the **standard's applicat
 
 This UUID v5 is deterministically generated from DNS namespace with name "rowingdata" (`uuid.uuid5(uuid.NAMESPACE_DNS, 'rowingdata')`), ensuring consistency across implementations. The FIT SDK requires the application_id field to be a 16-byte array representation of this UUID.
 
-### 1.5 Conformance Language
+### 1.5 Protocol Version
+
+The protocol version identifies the encoding a file follows. It is separate from the version of this document: most revisions of the document clarify text or add optional fields and leave the protocol version unchanged.
+
+Producers MUST write the protocol version in the `application_version` field (UINT32) of the `DeveloperDataId` message that carries the standard's application ID.
+
+**Current protocol version:** `1`
+
+The protocol version is incremented only for a breaking change: one that changes the meaning of a field an existing file may contain. Adding a field is not a breaking change.
+
+Consumers:
+
+- MUST NOT reject a file because `application_version` is absent. Files written before this field was defined do not carry it.
+- SHOULD treat an absent `application_version` as a file following the field definitions that predate protocol version 1.
+- MAY warn when `application_version` is higher than the highest version they support, and SHOULD still read the fields they understand.
+
+### 1.6 Conformance Language
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 

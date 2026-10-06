@@ -236,7 +236,7 @@ A common convention for grouping laps into workouts and splits is expected in a 
 **Notes:**
 
 - **DriveLength**: For OTW rowing, projection of handle trajectory on longitudinal axis. For indoor, handle travel catch-to-finish. Stored in **millimeters** (scale 1, units mm) for 1 mm precision (v1.2; v1.1 used scale 100 with units m).
-- **AverageBoatSpeed**: Scale 100 (0.01 m/s, maximum 655.35 m/s). Files following the field definitions that predate protocol version 1 used scale 255; a consumer that takes the scale from the field description reads both correctly. A scale of 1000, matching native `enhanced_speed`, is not possible: the `scale` of a FIT field description is a single byte.
+- **AverageBoatSpeed**: Scale 100 (0.01 m/s, maximum 655.35 m/s). A scale of 1000, matching native `enhanced_speed`, is not possible: the `scale` of a FIT field description is a single byte.
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
 - **Stroke rate** is carried by the native `cadence` and `cadence256` fields (§4), not by a developer field. Producers MUST NOT write native `fractional_cadence`: common platforms ignore it, and `cadence256` carries the same information.
 

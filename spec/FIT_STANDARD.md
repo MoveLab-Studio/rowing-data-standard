@@ -96,7 +96,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ### 2.1 Overview
 
-Different device types generate FIT Record messages at different frequencies. Consumers MUST support both approaches:
+Different device types generate FIT Record messages at different frequencies. Consumers MUST support all three approaches:
 
 ### 2.2 Stroke-Boundary Recording
 
@@ -123,15 +123,29 @@ Different device types generate FIT Record messages at different frequencies. Co
 
 **Typical devices:** GPS-enabled sports watches, multi-sport fitness devices, smartphone applications with GPS tracking
 
-### 2.4 RecordingStrategy Metadata Field
+### 2.4 Time-Sampled Recording
+
+**Definition:** Record messages generated at a regular time interval, independent of stroke boundaries and GPS updates.
+
+**Characteristics:**
+- Records generated at a fixed rate chosen by the producer (for example 1 Hz or 10 Hz)
+- Several records MAY fall within one stroke cycle; a record MAY also span more than one stroke at low sample rates
+- The phase of the stroke at record time MAY be given by the **StrokeState** developer field (ID 96, §5.1)
+- Stroke-specific metrics describe the most recent completed stroke
+- CANNOT include in-stroke curve data (curves require stroke boundaries)
+
+**Typical devices:** Ergometer monitors and apps that log at a fixed rate, research and coaching data loggers
+
+### 2.5 RecordingStrategy Metadata Field
 
 To indicate the recording approach, producers MAY include the **RecordingStrategy** developer field (ID 10, UINT8) on the **Session message**.
 
 | Value | Name | Description |
 |-------|------|-------------|
-| 0 | Unknown | Recording strategy unspecified (consumers MUST handle both approaches) |
+| 0 | Unknown | Recording strategy unspecified (consumers MUST handle all approaches) |
 | 1 | StrokeBoundary | One Record per stroke cycle |
 | 2 | GPSUpdate | Records at GPS position updates |
+| 3 | TimeSampled | Records at a regular time interval |
 
 **Message Type:** Session (one value per file)
 
@@ -147,7 +161,7 @@ When omitted or zero, consumers MUST NOT assume any particular strategy.
 
 Consumers MUST:
 
-1. **Support both recording strategies** without requiring configuration
+1. **Support all recording strategies** without requiring configuration
 2. **Not assume 1:1 correspondence** between Record messages and strokes
 3. **Not interpolate stroke-specific developer fields** between records (DriveLength, StrokeDriveTime, Catch, Finish, oarlock angles, etc.) - these describe discrete stroke events
 4. **Detect stroke occurrences** by monitoring changes in the native `total_cycles` field:
@@ -203,6 +217,7 @@ Producers SHOULD use these native FIT fields for rowing data:
 | AverageBoatSpeed | 8 | UINT16 | 255 | m/s | Average boat speed during stroke | 3-6 m/s |
 | WorkoutState | 9 | UINT8 | 1 | | Training intensity of the record | See WorkoutState values below |
 | StrokeWork | 19 | UINT16 | 1 | J | Work done over full stroke cycle | 100-500 J |
+| StrokeState | 96 | UINT8 | 1 | | Phase of the stroke at record time | See StrokeState values below |
 
 **Notes:**
 
@@ -229,6 +244,22 @@ WorkoutState uses the values of the native FIT `intensity` enum, so a producer c
 - Producers SHOULD distinguish Rest from Recovery: during Recovery the athlete is still moving, and consumers SHOULD NOT hide data recorded during it.
 - When a Lap message carries native `intensity`, producers SHOULD write the same value in WorkoutState on the records within that lap. If they disagree, consumers MUST use the Lap `intensity`.
 - Values above 6 are reserved. Consumers SHOULD treat an unknown value as Other.
+
+**StrokeState values:**
+
+| Value | Name | Meaning |
+|-------|------|---------|
+| 0 | Unknown | Phase not determined |
+| 1 | Waiting | Not rowing; waiting for the first stroke or after stopping |
+| 2 | Drive | Drive phase, catch to finish |
+| 3 | Dwell | Pause at the finish, before the recovery starts |
+| 4 | Recovery | Recovery phase, finish back to catch |
+
+**StrokeState rules:**
+
+- StrokeState is meaningful only when `RecordingStrategy=TimeSampled`. Producers SHOULD NOT write it with other recording strategies, where each record describes a whole stroke or an arbitrary moment.
+- Producers that do not distinguish Dwell MAY report it as Recovery.
+- Values above 4 are reserved. Consumers SHOULD treat an unknown value as Unknown.
 
 ### 5.2 Oarlock Metrics (Single, Record-Level)
 
@@ -428,7 +459,7 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 | 20-59 | In-stroke summaries | Dynamic allocation |
 | 60-89 | In-stroke curve arrays | Dynamic allocation |
 | 90-92 | In-stroke axis metadata | Assigned |
-| 93-199 | Extended standard fields | Available |
+| 93-199 | Extended standard fields | StrokeState (96) assigned; remainder available |
 | 200-211 | Dual oarlock per-side | Assigned |
 | 212-255 | Reserved for future extensions | Available |
 

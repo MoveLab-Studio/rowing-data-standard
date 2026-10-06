@@ -37,11 +37,13 @@ because files carrying it already exist.
 | 20–59 | In-stroke curve summary statistics | Unallocated — allocation scheme unresolved, and the statistics themselves are underspecified |
 | 60–89 | In-stroke curve arrays | Unallocated — allocation scheme unresolved; spec §6.2 and §9.1 disagree on this range |
 | 90–92 | In-stroke axis metadata | Assigned |
-| 93–199 | Extended standard fields | **Available** |
+| 93–95 | Extended standard fields | **Available** |
+| 96 | `StrokeState` | Assigned |
+| 97–199 | Extended standard fields | **Available** |
 | 200–211 | Dual oarlock, per side | Assigned |
 | 212–255 | Future extensions | **Reserved** |
 
-Free capacity today: **107 fields** in 93–199, plus 44 reserved in 212–255, plus
+Free capacity today: **106 fields** in 93–95 and 97–199, plus 44 reserved in 212–255, plus
 whatever of 20–89 the curve allocation does not consume.
 
 ## Assigned fields
@@ -50,7 +52,7 @@ whatever of 20–89 the curve allocation does not consume.
 
 | ID | Name | Base type | Scale | Units | Notes |
 |---|---|---|---|---|---|
-| 10 | `RecordingStrategy` | UINT8 | 1 | — | `0` Unknown, `1` StrokeBoundary, `2` GPSUpdate. One value per file. Currently `MAY`, and §3.1 requires consumers to work without it |
+| 10 | `RecordingStrategy` | UINT8 | 1 | — | `0` Unknown, `1` StrokeBoundary, `2` GPSUpdate, `3` TimeSampled. One value per file. Currently `MAY`, and §3.1 requires consumers to work without it |
 
 ### Record message — core rowing metrics
 
@@ -65,6 +67,7 @@ whatever of 20–89 the curve allocation does not consume.
 | 8 | `AverageBoatSpeed` | UINT16 | 255 | m/s | Averaged over the stroke |
 | 9 | `WorkoutState` | UINT8 | 1 | — | Values of the native FIT `intensity` enum: `0` Active, `1` Rest, `2` Warmup, `3` Cooldown, `4` Recovery, `5` Interval, `6` Other |
 | 19 | `StrokeWork` | UINT16 | 1 | J | Full stroke cycle, not drive-only |
+| 96 | `StrokeState` | UINT8 | 1 | — | `0` Unknown, `1` Waiting, `2` Drive, `3` Dwell, `4` Recovery. Only with `RecordingStrategy` TimeSampled |
 
 ### Record message — oarlock metrics (single / summary)
 

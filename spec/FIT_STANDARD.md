@@ -182,8 +182,6 @@ Producers SHOULD use these native FIT fields for rowing data:
 | StrokeDriveTime | 1 | UINT16 | 1 | ms | Duration of drive phase | 300-600 ms |
 | DragFactor | 2 | UINT16 | 1 | | Resistance setting (ergometer) | Device-specific |
 | StrokeRecoveryTime | 3 | UINT16 | 1 | ms | Duration of recovery phase | 500-1500 ms |
->>>
-
 | AverageDriveForceN | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
 | PeakDriveForceN | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
 | AverageBoatSpeed | 8 | UINT16 | 255 | m/s | Average boat speed during stroke | 3-6 m/s |
@@ -194,7 +192,6 @@ Producers SHOULD use these native FIT fields for rowing data:
 **Notes:**
 
 - **DriveLength**: For OTW rowing, projection of handle trajectory on longitudinal axis. For indoor, handle travel catch-to-finish. Stored in **millimeters** (scale 1, units mm) for 1 mm precision (v1.2; v1.1 used scale 100 with units m).
-- **Force fields**: Force is expressed in Newtons only. IDs 4-5 (pounds) are retired, see §9.2.
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
 - **StrokeRate**: High-precision per-stroke rate. Native `cadence` (integer spm) MUST still be written for backward compatibility when rate is known. Producers SHOULD also write `fractional_cadence` on Record messages when fractional rate is known.
 
@@ -400,15 +397,6 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 | 93-199 | Extended standard fields | StrokeRate (93) assigned; remainder available |
 | 200-211 | Dual oarlock per-side | Assigned |
 | 212-255 | Reserved for future extensions | Available |
-
-### 9.2 Retired Fields
-
-| Field ID | Name | Base Type | Scale | Units | Status | Replacement |
-|----------|------|-----------|-------|-------|--------|-------------|
-| 4 | AverageDriveForceLbs | UINT16 | 10 | lbs | Retired | AverageDriveForceN (ID 6) |
-| 5 | PeakDriveForceLbs | UINT16 | 10 | lbs | Retired | PeakDriveForceN (ID 7) |
-
-Producers MUST NOT write retired fields. Consumers MAY read them to support files written before they were retired. A retired field ID is never reused.
 
 ## 10. Version History
 

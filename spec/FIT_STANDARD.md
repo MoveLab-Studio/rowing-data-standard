@@ -187,7 +187,7 @@ Producers SHOULD use these native FIT fields for rowing data:
 | AverageDriveForceN | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
 | PeakDriveForceN | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
 | AverageBoatSpeed | 8 | UINT16 | 255 | m/s | Average boat speed during stroke | 3-6 m/s |
-| WorkoutState | 9 | UINT8 | 1 | | Rowing state indicator | See WorkoutState values |
+| WorkoutState | 9 | UINT8 | 1 | | Training intensity of the record | See WorkoutState values below |
 | StrokeWork | 19 | UINT16 | 1 | J | Work done over full stroke cycle | 100-500 J |
 | StrokeRate | 93 | UINT16 | 100 | spm | Per-stroke rate with 0.01 spm precision | 10-40 spm typical |
 
@@ -197,6 +197,26 @@ Producers SHOULD use these native FIT fields for rowing data:
 - **Force fields**: Newtons (IDs 6-7) are RECOMMENDED. Pounds (IDs 4-5) retained for backward compatibility only.
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
 - **StrokeRate**: High-precision per-stroke rate. Native `cadence` (integer spm) MUST still be written for backward compatibility when rate is known. Producers SHOULD also write `fractional_cadence` on Record messages when fractional rate is known.
+
+**WorkoutState values:**
+
+WorkoutState uses the values of the native FIT `intensity` enum, so a producer can copy them from the lap and a consumer can interpret them the same way.
+
+| Value | Name | Meaning |
+|-------|------|---------|
+| 0 | Active | Working |
+| 1 | Rest | Stationary; no rowing |
+| 2 | Warmup | Warm-up |
+| 3 | Cooldown | Cool-down |
+| 4 | Recovery | Light rowing between work intervals |
+| 5 | Interval | Work interval of a structured workout |
+| 6 | Other | None of the above |
+
+**WorkoutState rules:**
+
+- Producers SHOULD distinguish Rest from Recovery: during Recovery the athlete is still moving, and consumers SHOULD NOT hide data recorded during it.
+- When a Lap message carries native `intensity`, producers SHOULD write the same value in WorkoutState on the records within that lap. If they disagree, consumers MUST use the Lap `intensity`.
+- Values above 6 are reserved. Consumers SHOULD treat an unknown value as Other.
 
 ### 5.2 Oarlock Metrics (Single, Record-Level)
 

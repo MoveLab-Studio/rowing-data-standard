@@ -61,10 +61,10 @@ whatever of 20–89 the curve allocation does not consume.
 | 1 | `StrokeDriveTime` | UINT16 | 1 | ms | Drive phase duration |
 | 2 | `DragFactor` | UINT16 | 1 | — | Ergometer resistance setting; device-specific meaning |
 | 3 | `StrokeRecoveryTime` | UINT16 | 1 | ms | Recovery phase duration |
-| 4 | `AverageDriveForceLbs` | UINT16 | 10 | lbs | **Deprecated** → 6 |
-| 5 | `PeakDriveForceLbs` | UINT16 | 10 | lbs | **Deprecated** → 7 |
-| 6 | `AverageDriveForceN` | UINT16 | 10 | N | Preferred force unit |
-| 7 | `PeakDriveForceN` | UINT16 | 10 | N | Preferred force unit |
+| 4 | `AverageDriveForceLbs` | UINT16 | 10 | lbs | **Retired** → 6. Producers must not write it; consumers may read it |
+| 5 | `PeakDriveForceLbs` | UINT16 | 10 | lbs | **Retired** → 7. Producers must not write it; consumers may read it |
+| 6 | `AverageDriveForceN` | UINT16 | 10 | N | The only force unit |
+| 7 | `PeakDriveForceN` | UINT16 | 10 | N | The only force unit |
 | 8 | `AverageBoatSpeed` | UINT16 | 255 | m/s | Averaged over the stroke |
 | 9 | `WorkoutState` | UINT8 | 1 | — | Rowing state indicator |
 | 19 | `StrokeWork` | UINT16 | 1 | J | Full stroke cycle, not drive-only |

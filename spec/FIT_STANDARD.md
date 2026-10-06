@@ -334,29 +334,31 @@ Implementers MAY choose compliance levels based on their capabilities:
 
 ### Level 1: Minimal
 
-- Native FIT fields only
-- `RecordingStrategy` on Session (recommended)
+- Native FIT fields (§4), including `cadence` and `cadence256` for stroke rate
+- `RecordingStrategy` (ID 10) on Session (recommended)
 - Supports at least one recording strategy
 
 ### Level 2: Standard
 
 - Level 1 requirements
-- Core rowing metrics (IDs 0-9, 19)
+- Protocol version in `DeveloperDataId.application_version` (§1.5)
+- Core rowing metrics (IDs 0-3, 6-9, 19)
+- StrokeState (ID 96) when `RecordingStrategy=TimeSampled`
 - Handles missing developer fields gracefully
 
 ### Level 3: Full
 
 - Level 2 requirements
 - Oarlock metrics (IDs 11-18)
+- Oarlock settings on Session (IDs 94-95)
 - In-stroke axis metadata (IDs 90-92)
-- At least one in-stroke curve type
+- HandleForceCurve (ID 60)
 
 ### Level 4: Advanced
 
 - Level 3 requirements
 - Dual oarlock per-side metrics (IDs 200-211)
-- Multiple in-stroke curve types
-- Curve summary statistics
+- In-stroke companion JSON file (§6.6)
 
 ## 8. Data Quality and Validation
 

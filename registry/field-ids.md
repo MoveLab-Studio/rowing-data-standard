@@ -34,8 +34,9 @@ because files carrying it already exist.
 | 0–9, 19 | Core rowing metrics | Assigned (see below) |
 | 10 | `RecordingStrategy` (`session`-level) | Assigned |
 | 11–18 | Oarlock metrics, single/summary | Assigned |
-| 20–59 | In-stroke curve summary statistics | Unallocated — allocation scheme unresolved, and the statistics themselves are underspecified |
-| 60–89 | In-stroke curve arrays | Unallocated — allocation scheme unresolved; spec §6.2 and §9.1 disagree on this range |
+| 20–59 | Future curve data | **Reserved** |
+| 60 | `HandleForceCurve` | Assigned |
+| 61–89 | Future curve data | **Reserved** |
 | 90–92 | In-stroke axis metadata | Assigned |
 | 93 | Extended standard fields | **Available** |
 | 94–95 | `SlipThreshold`, `WashThreshold` (`session`-level) | Assigned |
@@ -45,7 +46,7 @@ because files carrying it already exist.
 | 212–254 | Future extensions | **Reserved** |
 
 Free capacity today: **104 fields** in 93 and 97–199, plus 43 reserved in 212–254, plus
-whatever of 20–89 the curve allocation does not consume.
+69 reserved for future curve data in 20–59 and 61–89.
 
 ## Assigned fields
 
@@ -126,34 +127,25 @@ unresolved; note that `InstrokeSampleInterval` is genuinely per-stroke when
 
 | Value | Name | `InstrokeSampleInterval` means |
 |---|---|---|
-| 0 | `UNKNOWN` | Nothing — shape-only curve, not for absolute plotting |
+| 0 | `UNKNOWN` | Nothing — producers must not write it; consumers treat older files carrying it as shape-only |
 | 1 | `TIME_UNIFORM_MS` | Milliseconds between samples |
 | 2 | `HANDLE_DISTANCE_UNIFORM_M` | Millimetres between samples along handle travel |
 | 3 | `OAR_ANGLE_UNIFORM_DEG` | Degrees between samples; domain is [`Catch`, `Finish`] |
 | 4 | `NORMALIZED_DRIVE_0_1` | Dimensionless step over a 0–1 drive |
 
-## Curve types — not yet allocated
+### Record message — in-stroke curves
 
-The draft names four curve types but assigns no fixed IDs, describing allocation
-as "dynamic, per-curve-type" — start at 60 and increment. Two vendors supporting
-different subsets, or the same subset in a different order, will assign different
-IDs to the same curve. Until a fixed allocation is agreed, **there is no
-interoperable ID for any of these** and producers should not assume a consumer
-will match theirs.
+Exactly one curve lives in the FIT file. Every other curve, and any curve at a
+higher resolution, goes in the companion JSON file (spec §6.6). Curve IDs are
+fixed and never allocated dynamically.
 
-| Curve | Y units | Y scale (UINT16) | Recommended abscissa | Signed? |
-|---|---|---|---|---|
-| `HandleForceCurve` | N | 10 | `HANDLE_DISTANCE_UNIFORM_M` (erg), `TIME_UNIFORM_MS` (OTW) | No |
-| `BoatAcceleratorCurve` | m/s² | 100 | `TIME_UNIFORM_MS` | **Yes** ⚠️ |
-| `OarAngleVelocityCurve` | deg/s | 10 | `TIME_UNIFORM_MS` or `OAR_ANGLE_UNIFORM_DEG` | Possibly |
-| `SeatCurve` | m | 255 | `HANDLE_DISTANCE_UNIFORM_M` or `TIME_UNIFORM_MS` | No |
+| ID | Name | Base type | Scale | Units | Notes |
+|---|---|---|---|---|---|
+| 60 | `HandleForceCurve` | UINT16 array | 10 | N | Max 127 points, uniformly spaced along the declared abscissa. Recommended abscissa `HANDLE_DISTANCE_UNIFORM_M` (erg) or `TIME_UNIFORM_MS` (on the water). Negative values written as 0 |
 
-⚠️ Boat acceleration is negative for a large part of every stroke, but §6.5
-mandates UINT16 arrays and leaves any offset transformation to the implementer,
-documented only in free text. Two vendors will pick different offsets. Unresolved.
-
-Arrays are UINT16, uniformly spaced along the declared abscissa, maximum 127
-points (255-byte FIT field limit ÷ 2 bytes).
+The curve summary statistics that the draft placed in 20–59 are withdrawn: they
+were never defined precisely enough to implement. A properly defined statistic
+can be proposed into the reserved range.
 
 ## Native FIT fields
 

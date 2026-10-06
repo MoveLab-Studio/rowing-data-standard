@@ -103,8 +103,8 @@ carry the port/starboard average.
 | 207 | `WashStarboard` | SINT16 | 10 | deg | Starboard |
 | 208 | `PeakForceAnglePort` | SINT16 | 10 | deg | Port |
 | 209 | `PeakForceAngleStarboard` | SINT16 | 10 | deg | Starboard |
-| 210 | `EffectiveLengthPort` | UINT16 | 1 | mm | Port. Was scale 100 / m before protocol version 1 |
-| 211 | `EffectiveLengthStarboard` | UINT16 | 1 | mm | Starboard. Was scale 100 / m before protocol version 1 |
+| 210 | `EffectiveLengthPort` | UINT16 | 1 | mm | Port |
+| 211 | `EffectiveLengthStarboard` | UINT16 | 1 | mm | Starboard |
 
 ### Record message — in-stroke axis metadata
 

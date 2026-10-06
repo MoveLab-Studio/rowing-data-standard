@@ -37,12 +37,11 @@ because files carrying it already exist.
 | 20–59 | In-stroke curve summary statistics | Unallocated — allocation scheme unresolved, and the statistics themselves are underspecified |
 | 60–89 | In-stroke curve arrays | Unallocated — allocation scheme unresolved; spec §6.2 and §9.1 disagree on this range |
 | 90–92 | In-stroke axis metadata | Assigned |
-| 93 | `StrokeRate` | **Retired** — replaced by native `cadence256`; never reused |
-| 94–199 | Extended standard fields | **Available** |
+| 93–199 | Extended standard fields | **Available** |
 | 200–211 | Dual oarlock, per side | Assigned |
 | 212–255 | Future extensions | **Reserved** |
 
-Free capacity today: **106 fields** in 94–199, plus 44 reserved in 212–255, plus
+Free capacity today: **107 fields** in 93–199, plus 44 reserved in 212–255, plus
 whatever of 20–89 the curve allocation does not consume.
 
 ## Assigned fields
@@ -68,7 +67,6 @@ whatever of 20–89 the curve allocation does not consume.
 | 8 | `AverageBoatSpeed` | UINT16 | 255 | m/s | Averaged over the stroke |
 | 9 | `WorkoutState` | UINT8 | 1 | — | Rowing state indicator |
 | 19 | `StrokeWork` | UINT16 | 1 | J | Full stroke cycle, not drive-only |
-| 93 | `StrokeRate` | UINT16 | 100 | spm | **Retired** → native `cadence256`. Producers must not write it; consumers may read it |
 
 ### Record message — oarlock metrics (single / summary)
 

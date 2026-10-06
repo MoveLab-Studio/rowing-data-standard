@@ -137,7 +137,7 @@ Consumers MUST:
 4. **Detect stroke occurrences** by monitoring changes in the native `total_cycles` field:
    - When `total_cycles` changes between consecutive records, at least one stroke occurred
    - If change is >1, multiple strokes occurred but per-stroke data for intermediate strokes is unavailable
-5. **Calculate stroke rate** from native `cadence256` when present, else from integer `cadence` — not from record message frequency. Consumers MAY read the retired StrokeRate field (ID 93) and native `fractional_cadence` in files written before protocol version 1
+5. **Calculate stroke rate** from native `cadence256` when present, else from integer `cadence` — not from record message frequency
 6. **Handle missing developer fields gracefully** (all developer fields are optional)
 
 ### 3.2 Recommended Requirements
@@ -189,15 +189,13 @@ Producers SHOULD use these native FIT fields for rowing data:
 | AverageBoatSpeed | 8 | UINT16 | 255 | m/s | Average boat speed during stroke | 3-6 m/s |
 | WorkoutState | 9 | UINT8 | 1 | | Rowing state indicator | See WorkoutState values |
 | StrokeWork | 19 | UINT16 | 1 | J | Work done over full stroke cycle | 100-500 J |
->>>
-
 
 **Notes:**
 
 - **DriveLength**: For OTW rowing, projection of handle trajectory on longitudinal axis. For indoor, handle travel catch-to-finish. Stored in **millimeters** (scale 1, units mm) for 1 mm precision (v1.2; v1.1 used scale 100 with units m).
 - **Force fields**: Newtons (IDs 6-7) are RECOMMENDED. Pounds (IDs 4-5) retained for backward compatibility only.
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
-- **Stroke rate** is carried by the native `cadence` and `cadence256` fields (§4), not by a developer field. The StrokeRate developer field (ID 93) is retired, see §9.2. Producers MUST NOT write native `fractional_cadence`: common platforms ignore it, and `cadence256` carries the same information.
+- **Stroke rate** is carried by the native `cadence` and `cadence256` fields (§4), not by a developer field. Producers MUST NOT write native `fractional_cadence`: common platforms ignore it, and `cadence256` carries the same information.
 
 ### 5.2 Oarlock Metrics (Single, Record-Level)
 
@@ -398,7 +396,7 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 | 20-59 | In-stroke summaries | Dynamic allocation |
 | 60-89 | In-stroke curve arrays | Dynamic allocation |
 | 90-92 | In-stroke axis metadata | Assigned |
-| 93-199 | Extended standard fields | 93 retired (StrokeRate); remainder available |
+| 93-199 | Extended standard fields | Available |
 | 200-211 | Dual oarlock per-side | Assigned |
 | 212-255 | Reserved for future extensions | Available |
 
@@ -408,7 +406,6 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 |----------|------|--------|-------------|
 | 4 | AverageDriveForceLbs | Deprecated | AverageDriveForceN (ID 6) |
 | 5 | PeakDriveForceLbs | Deprecated | PeakDriveForceN (ID 7) |
-| 93 | StrokeRate (UINT16, scale 100, spm) | Retired: producers MUST NOT write it; consumers MAY read it | Native `cadence256` |
 
 Producers SHOULD use Newtons for new implementations. Consumers MUST continue to support pounds for backward compatibility.
 

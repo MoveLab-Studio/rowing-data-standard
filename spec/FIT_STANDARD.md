@@ -322,11 +322,44 @@ As an alternative or supplement to full curves, summary statistics MAY be provid
 
 ### 6.7 Companion Files
 
-For curves exceeding 127 points, producers MAY use companion JSON files:
+Curve data that does not fit the FIT file, such as other curve types, higher resolutions or unresampled sensor data, MAY be shipped in a companion JSON file. The companion file is optional: a FIT file MUST be complete and conforming without it, and consumers MAY ignore it.
 
-- **Filename:** Same basename as FIT file with `.instroke.json` extension
-- **Format:** JSON object with curve names as keys, arrays of per-stroke samples as values
-- **Metadata:** Include `_rowingdata_instroke` object with version, abscissa type, point counts
+This standard fixes only the parts below. Everything else in the file is up to the producer, because the meaning of detailed sensor data depends on the equipment that recorded it.
+
+- **Filename:** Same basename as the FIT file with the `.instroke.json` extension
+- **Format:** A JSON object with curve names as keys. Each value is an array with one entry per stroke, and each entry is an array of samples
+- **Stroke alignment:** The metadata object MUST include `timestamps`, an array with the FIT Record `timestamp` of each stroke, in the same order as the per-stroke entries. A consumer uses it to match a curve to its Record
+- **Metadata:** A `_rowingdata_instroke` object, which MUST include:
+  - `version`: the protocol version (§1.5)
+  - `timestamps`: as above
+  - `curves`: an object with, for each curve name, its `units` (SI) and `abscissa` (an InstrokeAbscissaType name from §6.3)
+- **Values:** Plain JSON numbers in the declared units. No scaling or offset is applied, and negative values are allowed
+- **Curve names:** Producers SHOULD use the names below where they apply. Other names MAY be used and SHOULD start with the producer's name, to avoid collisions
+
+| Curve Name | Typical Data | Units | Recommended Abscissa |
+|------------|--------------|-------|----------------------|
+| HandleForceCurve | Handle force at full resolution | N | HANDLE_DISTANCE_UNIFORM_M (erg) or TIME_UNIFORM_MS (OTW) |
+| BoatAccelerationCurve | Boat acceleration | m/s² | TIME_UNIFORM_MS |
+| OarAngleVelocityCurve | Angular velocity of oar | deg/s | TIME_UNIFORM_MS or OAR_ANGLE_UNIFORM_DEG |
+| SeatCurve | Seat position | m | HANDLE_DISTANCE_UNIFORM_M or TIME_UNIFORM_MS |
+
+Example:
+
+```json
+{
+  "_rowingdata_instroke": {
+    "version": 1,
+    "timestamps": [1096389015, 1096389017],
+    "curves": {
+      "BoatAccelerationCurve": { "units": "m/s^2", "abscissa": "TIME_UNIFORM_MS" }
+    }
+  },
+  "BoatAccelerationCurve": [
+    [-1.2, -0.4, 0.8, 2.1],
+    [-1.1, -0.3, 0.9, 2.0]
+  ]
+}
+```
 
 ## 7. Compliance Levels
 

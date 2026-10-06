@@ -82,7 +82,7 @@ Negative toward the catch, positive toward the finish.
 | 13 | `Slip` | SINT16 | 10 | deg | Early blade entry |
 | 14 | `Wash` | SINT16 | 10 | deg | Late blade exit |
 | 15 | `PeakForceAngle` | SINT16 | 10 | deg | Oar angle at peak force (angle sensors, OTW) |
-| 16 | `EffectiveLength` | UINT16 | 1 | mm | Oarlock pin to handle. Unit conflict with 210/211 — see below |
+| 16 | `EffectiveLength` | UINT16 | 1 | mm | Oarlock pin to handle |
 | 17 | `PeakForcePositionNorm` | UINT16 | 1 | — | 0–10000, ten-thousandths of the drive |
 | 18 | `PeakForcePositionAbs` | UINT16 | 1 | mm | Handle position at peak force (position sensors, indoor) |
 
@@ -103,15 +103,8 @@ carry the port/starboard average.
 | 207 | `WashStarboard` | SINT16 | 10 | deg | Starboard |
 | 208 | `PeakForceAnglePort` | SINT16 | 10 | deg | Port |
 | 209 | `PeakForceAngleStarboard` | SINT16 | 10 | deg | Starboard |
-| 210 | `EffectiveLengthPort` | UINT16 | 100 ⚠️ | m ⚠️ | Port |
-| 211 | `EffectiveLengthStarboard` | UINT16 | 100 ⚠️ | m ⚠️ | Starboard |
-
-⚠️ 210 and 211 are recorded here exactly as the draft specifies them, in metres,
-while their summary field 16 is in millimetres. This is believed to be an
-oversight in the v1.2 precision change, which moved the summary field to
-millimetres and missed the per-side pair. Note that §5.3 also says the summary
-field carries the average of the two, which as written is a unit error. **Do not
-implement either way until this is resolved.**
+| 210 | `EffectiveLengthPort` | UINT16 | 1 | mm | Port. Was scale 100 / m before protocol version 1 |
+| 211 | `EffectiveLengthStarboard` | UINT16 | 1 | mm | Starboard. Was scale 100 / m before protocol version 1 |
 
 ### Record message — in-stroke axis metadata
 

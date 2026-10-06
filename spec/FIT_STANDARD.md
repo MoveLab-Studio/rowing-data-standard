@@ -234,8 +234,8 @@ When both port and starboard oarlocks are present, per-side metrics MAY be inclu
 | WashStarboard | 207 | SINT16 | 10 | deg | Starboard |
 | PeakForceAnglePort | 208 | SINT16 | 10 | deg | Port |
 | PeakForceAngleStarboard | 209 | SINT16 | 10 | deg | Starboard |
-| EffectiveLengthPort | 210 | UINT16 | 100 | m | Port |
-| EffectiveLengthStarboard | 211 | UINT16 | 100 | m | Starboard |
+| EffectiveLengthPort | 210 | UINT16 | 1 | mm | Port |
+| EffectiveLengthStarboard | 211 | UINT16 | 1 | mm | Starboard |
 
 **Per-side field rules:**
 

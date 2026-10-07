@@ -32,6 +32,7 @@ EXPECTED_DEVELOPER = (
     (10, "RecordingStrategy", MessageType.SESSION, BaseType.UINT8, 1, "", False),
     (19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J", False),
     (93, "StrokeRate", MessageType.RECORD, BaseType.UINT16, 100, "spm", False),
+    (96, "StrokeState", MessageType.RECORD, BaseType.UINT8, 1, "", False),
 )
 
 EXPECTED_NATIVE_SCALES = {
@@ -109,3 +110,4 @@ def test_recording_strategy_enum() -> None:
     assert RecordingStrategy.UNKNOWN == 0
     assert RecordingStrategy.STROKE_BOUNDARY == 1
     assert RecordingStrategy.GPS_UPDATE == 2
+    assert RecordingStrategy.TIME_SAMPLED == 3

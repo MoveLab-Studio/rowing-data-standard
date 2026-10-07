@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from rowing_data import read_fit, validate, write_fit
-from rowing_data.constants import RecordingStrategy
+from rowing_data.constants import RecordingStrategy, StrokeState
 from rowing_data.model import Record, RowingSession
 from sample_sessions import gps_update_session, stroke_boundary_session
 
@@ -27,6 +27,50 @@ def test_roundtrip_stroke_boundary(tmp_path: Path) -> None:
         _assert_record_roundtrip(got, want)
     assert loaded.stroke_counts() == [0, 1, 1]
     assert validate(loaded) == []
+
+
+def test_roundtrip_time_sampled_stroke_state(tmp_path: Path) -> None:
+    original = RowingSession(
+        recording_strategy=RecordingStrategy.TIME_SAMPLED,
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                stroke_state=StrokeState.DRIVE,
+                total_cycles=1,
+            ),
+            Record(
+                timestamp=datetime(2026, 1, 1, 0, 0, 1, tzinfo=UTC),
+                stroke_state=StrokeState.RECOVERY,
+                total_cycles=1,
+            ),
+        ),
+    )
+    path = tmp_path / "time.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.recording_strategy is RecordingStrategy.TIME_SAMPLED
+    assert [record.stroke_state for record in loaded.records] == [
+        StrokeState.DRIVE,
+        StrokeState.RECOVERY,
+    ]
+
+
+def test_stroke_state_on_stroke_boundary_warns_and_is_omitted(tmp_path: Path) -> None:
+    session = RowingSession(
+        recording_strategy=RecordingStrategy.STROKE_BOUNDARY,
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                stroke_state=StrokeState.DRIVE,
+            ),
+        ),
+    )
+    issues = validate(session)
+    assert any(issue.code == "stroke_state" for issue in issues)
+    path = tmp_path / "boundary.fit"
+    write_fit(session, path)
+    loaded = read_fit(path)
+    assert loaded.records[0].stroke_state is None
 
 
 def test_roundtrip_gps_update(tmp_path: Path) -> None:

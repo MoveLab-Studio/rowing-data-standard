@@ -18,6 +18,9 @@ That is conformance **Levels 1–2** as in §7, plus StrokeRate (93). §7’s Le
 bullet list omits 93; §5.1 still requires native `cadence` when rate is known,
 so this library writes and reads ID 93.
 
+`RecordingStrategy` includes TimeSampled (3). `StrokeState` (ID 96) is written
+only for that strategy: 0 Unknown, 1 Waiting, 2 Drive, 3 Dwell, 4 Recovery.
+
 **Not implemented** (Level 3–4, or blocked on draft defects):
 
 - Oarlock summary fields 11–18

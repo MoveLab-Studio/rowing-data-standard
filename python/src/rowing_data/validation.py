@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .codec import CodecError, encode
+from .constants import RecordingStrategy
 from .fields import field_by_id, field_by_name
 from .model import NATIVE_RECORD_ATTRS, RECORD_DEVELOPER_ATTRS, Record, RowingSession
 
@@ -33,11 +34,11 @@ def validate(session: RowingSession) -> list[Issue]:
     """Return errors and warnings. Does not modify ``session``."""
     issues: list[Issue] = list(session.read_issues)
     for index, record in enumerate(session.records):
-        issues.extend(_record_issues(record, index))
+        issues.extend(_record_issues(record, index, session))
     return issues
 
 
-def _record_issues(record: Record, index: int) -> list[Issue]:
+def _record_issues(record: Record, index: int, session: RowingSession) -> list[Issue]:
     issues: list[Issue] = []
     for field_id, attr in RECORD_DEVELOPER_ATTRS:
         physical = getattr(record, attr)
@@ -69,6 +70,19 @@ def _record_issues(record: Record, index: int) -> list[Issue]:
             encode(field_by_name(native_name), physical)
         except CodecError as exc:
             issues.append(Issue("error", "overflow", str(exc), index))
+
+    if (
+        record.stroke_state is not None
+        and session.recording_strategy is not RecordingStrategy.TIME_SAMPLED
+    ):
+        issues.append(
+            Issue(
+                "warning",
+                "stroke_state",
+                "StrokeState is only meaningful when RecordingStrategy is TimeSampled",
+                index,
+            )
+        )
 
     rate = record.resolved_stroke_rate()
     drive = record.stroke_drive_time_ms

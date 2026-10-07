@@ -18,6 +18,9 @@ That is conformance **Levels 1–2** as in §7, plus StrokeRate (93). §7’s Le
 bullet list omits 93; §5.1 still requires native `cadence` when rate is known,
 so this library writes and reads ID 93.
 
+`SlipThreshold` (94) and `WashThreshold` (95) are optional session fields, in
+newtons, written when set.
+
 **Not implemented** (Level 3–4, or blocked on draft defects):
 
 - Oarlock summary fields 11–18

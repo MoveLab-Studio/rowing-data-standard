@@ -60,6 +60,8 @@ class RowingSession:
     recording_strategy: RecordingStrategy = RecordingStrategy.UNKNOWN
     laps: tuple[Lap, ...] = field(default_factory=tuple)
     start_time: datetime | None = None
+    slip_threshold_n: int | None = None
+    wash_threshold_n: int | None = None
     # Warnings collected by read_fit (invalid RecordingStrategy, pre-v1.2 scales).
     read_issues: tuple = ()
 
@@ -91,6 +93,12 @@ RECORD_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
 )
 
 ATTR_BY_FIELD_ID = dict(RECORD_DEVELOPER_ATTRS)
+
+# Optional session developer fields. RecordingStrategy is always written.
+SESSION_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
+    (94, "slip_threshold_n"),
+    (95, "wash_threshold_n"),
+)
 
 # Record attributes that map to native FIT fields in spec §4.
 NATIVE_RECORD_ATTRS: Sequence[tuple[str, str]] = (

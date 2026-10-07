@@ -30,7 +30,12 @@ from fit_tool.profile.profile_type import (
 from .codec import encode
 from .constants import APPLICATION_ID, CYCLE_LENGTH16_SCALE
 from .fields import BaseType, FieldDef, field_by_id, field_by_name
-from .model import RECORD_DEVELOPER_ATTRS, Record, RowingSession
+from .model import (
+    RECORD_DEVELOPER_ATTRS,
+    SESSION_DEVELOPER_ATTRS,
+    Record,
+    RowingSession,
+)
 from .strokes import native_cadence_parts
 
 _DEV_INDEX = 0
@@ -68,6 +73,7 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
     total_distance = _last_distance(session)
 
     record_fields = _record_developer_fields_used(session)
+    session_fields = _optional_session_fields(session)
     builder = FitFileBuilder(auto_define=True, min_string_size=64)
 
     file_id = FileIdMessage()
@@ -93,9 +99,12 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
     event_start.timestamp = start_ms
     builder.add(event_start)
 
-    _add_developer_definitions(builder, record_fields)
+    _add_developer_definitions(builder, record_fields, session_fields)
 
-    session_msg = SessionMessage(developer_fields=[_recording_strategy_field(session)])
+    session_dev = [_recording_strategy_field(session)]
+    for field, value in session_fields:
+        session_dev.append(_developer_field(field, value))
+    session_msg = SessionMessage(developer_fields=session_dev)
     session_msg.message_index = 0
     session_msg.timestamp = start_ms
     session_msg.start_time = start_ms
@@ -164,14 +173,30 @@ def _record_developer_fields_used(session: RowingSession) -> tuple[FieldDef, ...
     return tuple(used)
 
 
+def _optional_session_fields(
+    session: RowingSession,
+) -> tuple[tuple[FieldDef, int], ...]:
+    used: list[tuple[FieldDef, int]] = []
+    for field_id, attr in SESSION_DEVELOPER_ATTRS:
+        value = getattr(session, attr)
+        if value is None:
+            continue
+        used.append((field_by_id(field_id), int(value)))
+    return tuple(used)
+
+
 def _add_developer_definitions(
-    builder: FitFileBuilder, record_fields: tuple[FieldDef, ...]
+    builder: FitFileBuilder,
+    record_fields: tuple[FieldDef, ...],
+    session_fields: tuple[tuple[FieldDef, int], ...] = (),
 ) -> None:
     dev_id = DeveloperDataIdMessage()
     dev_id.application_id = APPLICATION_ID
     dev_id.developer_data_index = _DEV_INDEX
     builder.add(dev_id)
     builder.add(_field_description(field_by_id(10)))
+    for field, _value in session_fields:
+        builder.add(_field_description(field))
     for field in record_fields:
         builder.add(_field_description(field))
 

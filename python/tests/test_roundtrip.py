@@ -29,6 +29,19 @@ def test_roundtrip_stroke_boundary(tmp_path: Path) -> None:
     assert validate(loaded) == []
 
 
+def test_roundtrip_slip_and_wash_thresholds(tmp_path: Path) -> None:
+    original = RowingSession(
+        records=(Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC)),),
+        slip_threshold_n=80,
+        wash_threshold_n=120,
+    )
+    path = tmp_path / "thresholds.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.slip_threshold_n == 80
+    assert loaded.wash_threshold_n == 120
+
+
 def test_roundtrip_gps_update(tmp_path: Path) -> None:
     original = gps_update_session()
     path = tmp_path / "gps.fit"

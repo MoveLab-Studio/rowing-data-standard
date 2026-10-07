@@ -128,7 +128,7 @@ DEVELOPER_FIELDS: tuple[FieldDef, ...] = (
     ),
     _dev(6, "AverageDriveForceN", MessageType.RECORD, BaseType.UINT16, 10, "N"),
     _dev(7, "PeakDriveForceN", MessageType.RECORD, BaseType.UINT16, 10, "N"),
-    _dev(8, "AverageBoatSpeed", MessageType.RECORD, BaseType.UINT16, 255, "m/s"),
+    _dev(8, "AverageBoatSpeed", MessageType.RECORD, BaseType.UINT16, 100, "m/s"),
     _dev(
         9,
         "WorkoutState",

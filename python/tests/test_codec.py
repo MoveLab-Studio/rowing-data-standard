@@ -15,7 +15,7 @@ from rowing_data.fields import field_by_id, field_by_name
         (1, 450, 450),  # StrokeDriveTime ms
         (6, 412.3, 4123),  # AverageDriveForceN, scale 10
         (7, 0, 0),  # measured zero is a real value
-        (8, 4.0, 1020),  # AverageBoatSpeed, scale 255
+        (8, 4.0, 400),  # AverageBoatSpeed, scale 100
         (19, 250, 250),  # StrokeWork J
         (93, 28.50, 2850),  # StrokeRate, scale 100
         (10, 1, 1),  # RecordingStrategy

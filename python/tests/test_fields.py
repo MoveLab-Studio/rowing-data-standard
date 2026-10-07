@@ -27,7 +27,7 @@ EXPECTED_DEVELOPER = (
     (5, "PeakDriveForceLbs", MessageType.RECORD, BaseType.UINT16, 10, "lbs", True),
     (6, "AverageDriveForceN", MessageType.RECORD, BaseType.UINT16, 10, "N", False),
     (7, "PeakDriveForceN", MessageType.RECORD, BaseType.UINT16, 10, "N", False),
-    (8, "AverageBoatSpeed", MessageType.RECORD, BaseType.UINT16, 255, "m/s", False),
+    (8, "AverageBoatSpeed", MessageType.RECORD, BaseType.UINT16, 100, "m/s", False),
     (9, "WorkoutState", MessageType.RECORD, BaseType.UINT8, 1, "", False),
     (10, "RecordingStrategy", MessageType.SESSION, BaseType.UINT8, 1, "", False),
     (19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J", False),

@@ -23,7 +23,10 @@ so this library writes and reads ID 93.
 - Oarlock summary fields 11–18
 - Dual-oarlock 200–211 (210/211 have a metres vs millimetres conflict in the draft)
 - In-stroke axis metadata 90–92, curve arrays, curve summaries, `.instroke.json`
-- WorkoutState enumeration (the draft has no value table; ID 9 is an opaque UINT8)
+
+`WorkoutState` (ID 9) uses the FIT intensity values: 0 Active, 1 Rest, 2 Warmup,
+3 Cooldown, 4 Recovery, 5 Interval, 6 Other. An unknown value is read as Other.
+When a lap's `intensity` disagrees with a record, the lap wins.
 
 **Pre-v1.2 files:** DriveLength used scale 100 / metres. This reader decodes
 with **v0.1 units (mm)** and records a `field_scale` warning. It does not

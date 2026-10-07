@@ -136,7 +136,10 @@ DEVELOPER_FIELDS: tuple[FieldDef, ...] = (
         BaseType.UINT8,
         1,
         "",
-        notes="Opaque UINT8; the draft has no enum table.",
+        notes=(
+            "FIT intensity enum: 0 Active, 1 Rest, 2 Warmup, 3 Cooldown, "
+            "4 Recovery, 5 Interval, 6 Other."
+        ),
     ),
     _dev(10, "RecordingStrategy", MessageType.SESSION, BaseType.UINT8, 1, ""),
     _dev(19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J"),

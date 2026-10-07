@@ -33,11 +33,11 @@ def validate(session: RowingSession) -> list[Issue]:
     """Return errors and warnings. Does not modify ``session``."""
     issues: list[Issue] = list(session.read_issues)
     for index, record in enumerate(session.records):
-        issues.extend(_record_issues(record, index))
+        issues.extend(_record_issues(record, index, session))
     return issues
 
 
-def _record_issues(record: Record, index: int) -> list[Issue]:
+def _record_issues(record: Record, index: int, session: RowingSession) -> list[Issue]:
     issues: list[Issue] = []
     for field_id, attr in RECORD_DEVELOPER_ATTRS:
         physical = getattr(record, attr)
@@ -70,6 +70,22 @@ def _record_issues(record: Record, index: int) -> list[Issue]:
         except CodecError as exc:
             issues.append(Issue("error", "overflow", str(exc), index))
 
+    lap = _lap_for(record, session)
+    if (
+        lap is not None
+        and lap.intensity is not None
+        and record.workout_state is not None
+        and record.workout_state != lap.intensity
+    ):
+        issues.append(
+            Issue(
+                "warning",
+                "workout_state",
+                "WorkoutState disagrees with lap intensity; the lap wins",
+                index,
+            )
+        )
+
     rate = record.resolved_stroke_rate()
     drive = record.stroke_drive_time_ms
     recovery = record.stroke_recovery_time_ms
@@ -87,3 +103,11 @@ def _record_issues(record: Record, index: int) -> list[Issue]:
                 )
             )
     return issues
+
+
+def _lap_for(record: Record, session: RowingSession):
+    if record.lap_index is None:
+        return None
+    if record.lap_index < 0 or record.lap_index >= len(session.laps):
+        return None
+    return session.laps[record.lap_index]

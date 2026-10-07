@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from rowing_data import read_fit, validate, write_fit
-from rowing_data.constants import RecordingStrategy
+from rowing_data.constants import RecordingStrategy, WorkoutState
 from rowing_data.model import Record, RowingSession
 from sample_sessions import gps_update_session, stroke_boundary_session
 
@@ -27,6 +27,21 @@ def test_roundtrip_stroke_boundary(tmp_path: Path) -> None:
         _assert_record_roundtrip(got, want)
     assert loaded.stroke_counts() == [0, 1, 1]
     assert validate(loaded) == []
+
+
+def test_roundtrip_workout_state(tmp_path: Path) -> None:
+    original = RowingSession(
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                workout_state=WorkoutState.RECOVERY,
+            ),
+        )
+    )
+    path = tmp_path / "state.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.records[0].workout_state is WorkoutState.RECOVERY
 
 
 def test_roundtrip_gps_update(tmp_path: Path) -> None:

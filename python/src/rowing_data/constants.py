@@ -33,3 +33,15 @@ class RecordingStrategy(IntEnum):
     UNKNOWN = 0
     STROKE_BOUNDARY = 1
     GPS_UPDATE = 2
+
+
+class WorkoutState(IntEnum):
+    """Record developer field ID 9, the native FIT intensity values."""
+
+    ACTIVE = 0
+    REST = 1
+    WARMUP = 2
+    COOLDOWN = 3
+    RECOVERY = 4
+    INTERVAL = 5
+    OTHER = 6

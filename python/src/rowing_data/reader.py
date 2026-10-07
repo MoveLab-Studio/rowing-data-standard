@@ -8,7 +8,7 @@ from pathlib import Path
 from fitparse import FitFile
 
 from .codec import decode
-from .constants import APPLICATION_ID, RecordingStrategy
+from .constants import APPLICATION_ID, RecordingStrategy, WorkoutState
 from .fields import FieldDef, field_by_id, field_by_name
 from .model import ATTR_BY_FIELD_ID, Lap, Record, RowingSession
 from .validation import Issue
@@ -53,12 +53,23 @@ def read_fit(path: str | Path) -> RowingSession:
             issues.append(strategy_issue)
         break
 
-    laps = _laps(messages)
-    records = tuple(
-        _record(message, our_fields, laps)
-        for message in messages
-        if message.name == "record"
-    )
+    laps, lap_issues = _laps(messages)
+    issues.extend(lap_issues)
+    records_list: list[Record] = []
+    for message in messages:
+        if message.name != "record":
+            continue
+        record, state_issue = _record(message, our_fields, laps)
+        records_list.append(record)
+        if state_issue is not None:
+            state_issue = Issue(
+                state_issue.level,
+                state_issue.code,
+                state_issue.message,
+                len(records_list) - 1,
+            )
+            issues.append(state_issue)
+    records = tuple(records_list)
     return RowingSession(
         records=records,
         recording_strategy=strategy,
@@ -169,8 +180,9 @@ def _as_datetime(value: object) -> datetime | None:
     return None
 
 
-def _laps(messages: list) -> list[Lap]:
+def _laps(messages: list) -> tuple[list[Lap], list[Issue]]:
     laps: list[Lap] = []
+    issues: list[Issue] = []
     for message in messages:
         if message.name != "lap":
             continue
@@ -181,15 +193,49 @@ def _laps(messages: list) -> list[Lap]:
             continue
         elapsed = message.get_value("total_elapsed_time")
         distance = message.get_value("total_distance")
+        intensity, issue = _as_workout_state(message.get_value("intensity"))
+        if issue is not None:
+            issues.append(issue)
         laps.append(
             Lap(
                 start_time=start,
                 total_elapsed_s=None if elapsed is None else float(elapsed),
                 total_distance_m=None if distance is None else float(distance),
+                intensity=intensity,
             )
         )
     laps.sort(key=lambda lap: lap.start_time)
-    return laps
+    return laps, issues
+
+
+def _as_workout_state(value: object) -> tuple[WorkoutState | None, Issue | None]:
+    if value is None:
+        return None, None
+    if isinstance(value, str):
+        try:
+            return WorkoutState[value.strip().upper()], None
+        except KeyError:
+            return WorkoutState.OTHER, Issue(
+                "warning",
+                "workout_state",
+                f"WorkoutState {value!r} is unknown; treating as Other",
+            )
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return WorkoutState.OTHER, Issue(
+            "warning",
+            "workout_state",
+            f"WorkoutState {value!r} is unknown; treating as Other",
+        )
+    try:
+        return WorkoutState(number), None
+    except ValueError:
+        return WorkoutState.OTHER, Issue(
+            "warning",
+            "workout_state",
+            f"WorkoutState {number} is above 6; treating as Other",
+        )
 
 
 def _lap_index(timestamp: datetime, laps: list[Lap]) -> int | None:
@@ -204,7 +250,9 @@ def _lap_index(timestamp: datetime, laps: list[Lap]) -> int | None:
     return index
 
 
-def _record(message, our_fields: dict[str, FieldDef], laps: list[Lap]) -> Record:
+def _record(
+    message, our_fields: dict[str, FieldDef], laps: list[Lap]
+) -> tuple[Record, Issue | None]:
     timestamp = _as_datetime(message.get_value("timestamp"))
     if timestamp is None:
         raise ValueError("record message is missing timestamp")
@@ -238,7 +286,11 @@ def _record(message, our_fields: dict[str, FieldDef], laps: list[Lap]) -> Record
             continue
         kwargs[attr] = decode(spec, int(raw))
 
-    return Record(**kwargs)  # type: ignore[arg-type]
+    state_issue = None
+    if kwargs.get("workout_state") is not None:
+        parsed, state_issue = _as_workout_state(kwargs["workout_state"])
+        kwargs["workout_state"] = parsed
+    return Record(**kwargs), state_issue  # type: ignore[arg-type]
 
 
 def _native_int(message, name: str) -> int | None:

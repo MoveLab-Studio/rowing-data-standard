@@ -12,12 +12,13 @@ from fit_tool.fit_file_builder import FitFileBuilder
 from fit_tool.profile.messages.developer_data_id_message import DeveloperDataIdMessage
 from fit_tool.profile.messages.field_description_message import FieldDescriptionMessage
 from fit_tool.profile.messages.file_id_message import FileIdMessage
+from fit_tool.profile.messages.lap_message import LapMessage
 from fit_tool.profile.messages.record_message import RecordMessage
 from fit_tool.profile.messages.session_message import SessionMessage
-from fit_tool.profile.profile_type import FileType, Manufacturer
+from fit_tool.profile.profile_type import FileType, Intensity, Manufacturer
 
 from rowing_data import APPLICATION_ID, read_fit, validate
-from rowing_data.constants import RecordingStrategy
+from rowing_data.constants import RecordingStrategy, WorkoutState
 from rowing_data.fields import field_by_id
 
 
@@ -130,6 +131,64 @@ def test_mismatched_file_scale_warns_and_uses_v01_units(tmp_path: Path) -> None:
     # Draft v0.1 treats raw 142 as millimetres, not 1.42 m.
     assert loaded.records[0].drive_length_mm == 142
     assert any(issue.code == "field_scale" for issue in validate(loaded))
+
+
+def test_unknown_workout_state_is_other(tmp_path: Path) -> None:
+    path = tmp_path / "state.fit"
+    builder = FitFileBuilder(auto_define=True, min_string_size=64)
+
+    file_id = FileIdMessage()
+    file_id.type = FileType.ACTIVITY
+    file_id.manufacturer = Manufacturer.DEVELOPMENT
+    file_id.time_created = _ts_ms()
+    builder.add(file_id)
+
+    dev_id = DeveloperDataIdMessage()
+    dev_id.application_id = APPLICATION_ID
+    dev_id.developer_data_index = 0
+    builder.add(dev_id)
+
+    desc = FieldDescriptionMessage()
+    desc.developer_data_index = 0
+    desc.field_definition_number = 9
+    desc.fit_base_type_id = BaseType.UINT8.value
+    desc.field_name = "WorkoutState"
+    desc.scale = 1
+    desc.offset = 0
+    desc.units = ""
+    builder.add(desc)
+
+    state = DeveloperField(
+        developer_data_index=0,
+        field_id=9,
+        size=1,
+        name="WorkoutState",
+        base_type=BaseType.UINT8,
+        scale=1,
+        offset=0,
+        units="",
+    )
+    state.set_value(0, 7)
+    session = SessionMessage()
+    session.start_time = _ts_ms()
+    session.timestamp = _ts_ms()
+    builder.add(session)
+
+    lap = LapMessage()
+    lap.start_time = _ts_ms()
+    lap.timestamp = _ts_ms()
+    lap.intensity = Intensity.REST
+    builder.add(lap)
+
+    rec = RecordMessage(developer_fields=[state])
+    rec.timestamp = _ts_ms()
+    builder.add(rec)
+    builder.build().to_file(str(path))
+
+    loaded = read_fit(path)
+    assert loaded.records[0].workout_state is WorkoutState.OTHER
+    assert loaded.laps[0].intensity is WorkoutState.REST
+    assert any(issue.code == "workout_state" for issue in loaded.read_issues)
 
 
 def test_invalid_recording_strategy_is_unknown_with_warning(tmp_path: Path) -> None:

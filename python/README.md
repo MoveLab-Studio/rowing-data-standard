@@ -21,7 +21,7 @@ so this library writes and reads ID 93.
 **Not implemented** (Level 3–4, or blocked on draft defects):
 
 - Oarlock summary fields 11–18
-- Dual-oarlock 200–211 (210/211 have a metres vs millimetres conflict in the draft)
+- Dual-oarlock 200–211
 - In-stroke axis metadata 90–92, curve arrays, curve summaries, `.instroke.json`
 - WorkoutState enumeration (the draft has no value table; ID 9 is an opaque UINT8)
 

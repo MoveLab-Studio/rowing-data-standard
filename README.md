@@ -156,6 +156,7 @@ Listed as initial participants in getting the draft moving:
 | Michael Naughton | Nielsen-Kellerman |
 | Tony Andrews | CrewNerd |
 | Joris Blaak | MoveLab Studio — repository maintenance |
+| Jaap van Ekris | OpenRowingMonitor — initial FIT fields and type definitions |
 
 This list describes who has been active so far, not a closed membership or an
 appointed committee. It is wrong the moment someone else shows up — corrections

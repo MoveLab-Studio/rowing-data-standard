@@ -282,6 +282,7 @@ These fields define the X-axis interpretation for curve data on each Record:
 
 - Axis metadata fields MUST appear together on each Record containing curve data
 - For Type=TIME_UNIFORM_MS with known drive time: `InstrokeSampleInterval = drive_time_ms / (point_count - 1)`
+- For Type=HANDLE_DISTANCE_UNIFORM_M with known drive length, `InstrokeSampleInterval = DriveLength / (point_count - 1)`
 - For Type=OAR_ANGLE_UNIFORM_DEG: Domain is [Catch, Finish] angles (from fields 11-12)
 - Type=UNKNOWN indicates shape-only data (for pattern analysis, not absolute plotting)
 - Producers SHOULD strive for consistency between axis metadata and stroke scalars, but consumers SHOULD NOT enforce strict validation
@@ -298,8 +299,6 @@ Recommended curve type names and encoding (Y-axis scale in developer field descr
 | SeatCurve | Seat position | m | 255 (~4 mm) | HANDLE_DISTANCE_UNIFORM_M or TIME_UNIFORM_MS |
 
 Curve samples are **uniformly spaced** along the declared abscissa (fields 90-92). Non-uniform source data MUST be resampled before export or stored in a companion JSON file.
-
-For **HANDLE_DISTANCE_UNIFORM_M**, sample index `k` maps to handle position `k × Δm` from catch, with Δm = `DriveLength / (point_count - 1)` when drive length is known.
 
 ### 6.5 Curve Array Format
 

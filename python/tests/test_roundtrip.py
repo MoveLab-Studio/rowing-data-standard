@@ -68,7 +68,7 @@ def test_validate_overflow_is_error() -> None:
         records=(
             Record(
                 timestamp=datetime(2026, 1, 1, tzinfo=UTC),
-                average_drive_force_n=7000,
+                average_drive_force=7000,
             ),
         )
     )
@@ -85,10 +85,10 @@ def _assert_record_roundtrip(got: Record, want: Record) -> None:
     assert got.drive_length_mm == want.drive_length_mm
     assert got.stroke_drive_time_ms == want.stroke_drive_time_ms
     assert got.stroke_recovery_time_ms == want.stroke_recovery_time_ms
-    if want.average_drive_force_n is not None:
-        assert got.average_drive_force_n == pytest.approx(want.average_drive_force_n)
-    if want.peak_drive_force_n is not None:
-        assert got.peak_drive_force_n == pytest.approx(want.peak_drive_force_n)
+    if want.average_drive_force is not None:
+        assert got.average_drive_force == pytest.approx(want.average_drive_force)
+    if want.peak_drive_force is not None:
+        assert got.peak_drive_force == pytest.approx(want.peak_drive_force)
     assert got.stroke_work_j == want.stroke_work_j
     assert got.heart_rate == want.heart_rate
     assert got.power == want.power

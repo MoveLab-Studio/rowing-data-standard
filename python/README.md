@@ -10,13 +10,16 @@ shipping products.
 
 ## Scope
 
-Implements Draft v0.1 **§4 native FIT fields**, **§5.1 core metrics** (IDs 0–9,
-19, and **StrokeRate 93**), and Session **RecordingStrategy** (ID 10), under
+Implements Draft v0.1 **§4 native FIT fields**, **§5.1 core metrics** (IDs 0–3,
+6–9, and 19, and **StrokeRate 93**), and Session **RecordingStrategy** (ID 10), under
 application UUID `89e86158-6d47-5c98-9d46-7d29437f27b9`.
 
 That is conformance **Levels 1–2** as in §7, plus StrokeRate (93). §7’s Level 2
 bullet list omits 93; §5.1 still requires native `cadence` when rate is known,
 so this library writes and reads ID 93.
+
+Force is `AverageDriveForce` (6) and `PeakDriveForce` (7), in newtons. Fields 4
+and 5 are not part of this sample.
 
 **Not implemented** (Level 3–4, or blocked on draft defects):
 

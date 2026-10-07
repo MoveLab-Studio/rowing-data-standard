@@ -8,7 +8,7 @@ from pathlib import Path
 from fitparse import FitFile
 
 from .codec import decode
-from .constants import APPLICATION_ID, RecordingStrategy
+from .constants import APPLICATION_ID, CADENCE256_FIELD_ID, RecordingStrategy
 from .fields import FieldDef, field_by_id, field_by_name
 from .model import ATTR_BY_FIELD_ID, Lap, Record, RowingSession
 from .validation import Issue
@@ -21,7 +21,8 @@ _NATIVE_NAMES = {
     "timestamp",
     "distance",
     "cadence",
-    "fractional_cadence",
+    "cadence256",
+    f"unknown_{CADENCE256_FIELD_ID}",
     "heart_rate",
     "power",
     "enhanced_speed",
@@ -213,7 +214,7 @@ def _record(message, our_fields: dict[str, FieldDef], laps: list[Lap]) -> Record
         "timestamp": timestamp,
         "distance_m": _native_float(message, "distance"),
         "cadence": _native_int(message, "cadence"),
-        "fractional_cadence": _native_float(message, "fractional_cadence"),
+        "cadence256": _cadence256_spm(message),
         "heart_rate": _native_int(message, "heart_rate"),
         "power": _native_int(message, "power"),
         "enhanced_speed_mps": _native_float(message, "enhanced_speed"),
@@ -260,6 +261,19 @@ def _native_raw(message, name: str) -> int | None:
     if field is None or field.raw_value is None:
         return None
     return int(field.raw_value)
+
+
+def _cadence256_spm(message) -> float | None:
+    spec = field_by_name("cadence256")
+    for field in message:
+        if field.name not in ("cadence256", f"unknown_{CADENCE256_FIELD_ID}"):
+            continue
+        raw = field.raw_value
+        if raw is None or isinstance(raw, list | tuple):
+            return None
+        decoded = decode(spec, int(raw))
+        return None if decoded is None else float(decoded)
+    return None
 
 
 def _cycle_length_m(message) -> float | None:

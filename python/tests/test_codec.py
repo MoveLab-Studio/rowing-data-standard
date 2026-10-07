@@ -17,7 +17,6 @@ from rowing_data.fields import field_by_id, field_by_name
         (7, 0, 0),  # measured zero is a real value
         (8, 4.0, 1020),  # AverageBoatSpeed, scale 255
         (19, 250, 250),  # StrokeWork J
-        (93, 28.50, 2850),  # StrokeRate, scale 100
         (10, 1, 1),  # RecordingStrategy
         (4, 90.5, 905),  # deprecated pounds still encode
     ],
@@ -47,9 +46,9 @@ def test_native_distance_and_speed_scales() -> None:
     assert encode(speed, 4.321) == 4321
     assert decode(speed, 4321) == pytest.approx(4.321)
 
-    frac = field_by_name("fractional_cadence")
-    assert encode(frac, 0.5) == 64
-    assert decode(frac, 64) == pytest.approx(0.5)
+    rate = field_by_name("cadence256")
+    assert encode(rate, 28.5) == 7296
+    assert decode(rate, 7296) == pytest.approx(28.5)
 
     cycle = field_by_name("cycle_length16")
     assert encode(cycle, 8.50) == 850

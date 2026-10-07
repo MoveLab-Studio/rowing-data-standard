@@ -24,7 +24,9 @@ FIT_EPOCH_UNIX = 631065600
 DISTANCE_SCALE = 100  # metres
 ENHANCED_SPEED_SCALE = 1000  # m/s
 CYCLE_LENGTH16_SCALE = 100  # metres
-FRACTIONAL_CADENCE_SCALE = 128  # fraction of 1 spm
+# Native record field 52. physical spm = raw / 256.
+CADENCE256_SCALE = 256
+CADENCE256_FIELD_ID = 52
 
 
 class RecordingStrategy(IntEnum):

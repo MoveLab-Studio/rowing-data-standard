@@ -31,14 +31,13 @@ EXPECTED_DEVELOPER = (
     (9, "WorkoutState", MessageType.RECORD, BaseType.UINT8, 1, "", False),
     (10, "RecordingStrategy", MessageType.SESSION, BaseType.UINT8, 1, "", False),
     (19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J", False),
-    (93, "StrokeRate", MessageType.RECORD, BaseType.UINT16, 100, "spm", False),
 )
 
 EXPECTED_NATIVE_SCALES = {
     "timestamp": (BaseType.UINT32, 1, "s"),
     "distance": (BaseType.UINT32, 100, "m"),
     "cadence": (BaseType.UINT8, 1, "spm"),
-    "fractional_cadence": (BaseType.UINT8, 128, "spm"),
+    "cadence256": (BaseType.UINT16, 256, "spm"),
     "heart_rate": (BaseType.UINT8, 1, "bpm"),
     "power": (BaseType.UINT16, 1, "W"),
     "enhanced_speed": (BaseType.UINT32, 1000, "m/s"),
@@ -83,7 +82,8 @@ def test_developer_field_ids_are_unique() -> None:
 
 
 def test_field_lookup() -> None:
-    assert field_by_id(93).name == "StrokeRate"
+    with pytest.raises(KeyError):
+        field_by_id(93)
     assert field_by_name("DriveLength").field_id == 0
     assert field_by_name("cadence").native is True
     with pytest.raises(KeyError):

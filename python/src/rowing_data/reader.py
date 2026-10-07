@@ -8,7 +8,7 @@ from pathlib import Path
 from fitparse import FitFile
 
 from .codec import decode
-from .constants import APPLICATION_ID, RecordingStrategy
+from .constants import APPLICATION_ID, PROTOCOL_VERSION, RecordingStrategy
 from .fields import FieldDef, field_by_id, field_by_name
 from .model import ATTR_BY_FIELD_ID, Lap, Record, RowingSession
 from .validation import Issue
@@ -39,6 +39,7 @@ def read_fit(path: str | Path) -> RowingSession:
     messages = list(fit.messages)
     our_indexes = _developer_indexes_for_app(messages)
     our_fields, issues = _our_developer_fields(messages, our_indexes)
+    issues.extend(_protocol_version_issues(messages))
 
     strategy = RecordingStrategy.UNKNOWN
     start_time: datetime | None = None
@@ -89,6 +90,33 @@ def _developer_indexes_for_app(messages: list) -> set[int]:
         index = message.get_value("developer_data_index")
         indexes.add(0 if index is None else int(index))
     return indexes
+
+
+def _protocol_version_issues(messages: list) -> list[Issue]:
+    """Warn when the file's protocol version is newer than this sample.
+
+    A missing application_version is a file from before the field existed.
+    Those files are read. They are not rejected and they are not warned.
+    """
+    issues: list[Issue] = []
+    for message in messages:
+        if message.name != "developer_data_id":
+            continue
+        if _as_bytes(message.get_value("application_id")) != APPLICATION_ID:
+            continue
+        version = message.get_value("application_version")
+        if version is None:
+            continue
+        if int(version) > PROTOCOL_VERSION:
+            issues.append(
+                Issue(
+                    "warning",
+                    "protocol_version",
+                    f"application_version {int(version)} is newer than "
+                    f"{PROTOCOL_VERSION}; reading the fields this sample knows",
+                )
+            )
+    return issues
 
 
 def _our_developer_fields(

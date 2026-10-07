@@ -12,7 +12,9 @@ shipping products.
 
 Implements Draft v0.1 **§4 native FIT fields**, **§5.1 core metrics** (IDs 0–9,
 19, and **StrokeRate 93**), and Session **RecordingStrategy** (ID 10), under
-application UUID `89e86158-6d47-5c98-9d46-7d29437f27b9`.
+application UUID `89e86158-6d47-5c98-9d46-7d29437f27b9`. Producers write
+protocol version 1 in `DeveloperDataId.application_version`. A file that omits
+it is still read.
 
 That is conformance **Levels 1–2** as in §7, plus StrokeRate (93). §7’s Level 2
 bullet list omits 93; §5.1 still requires native `cadence` when rate is known,

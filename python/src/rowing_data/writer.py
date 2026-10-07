@@ -28,7 +28,7 @@ from fit_tool.profile.profile_type import (
 )
 
 from .codec import encode
-from .constants import APPLICATION_ID, CYCLE_LENGTH16_SCALE
+from .constants import APPLICATION_ID, CYCLE_LENGTH16_SCALE, PROTOCOL_VERSION
 from .fields import BaseType, FieldDef, field_by_id, field_by_name
 from .model import RECORD_DEVELOPER_ATTRS, Record, RowingSession
 from .strokes import native_cadence_parts
@@ -169,6 +169,7 @@ def _add_developer_definitions(
 ) -> None:
     dev_id = DeveloperDataIdMessage()
     dev_id.application_id = APPLICATION_ID
+    dev_id.application_version = PROTOCOL_VERSION
     dev_id.developer_data_index = _DEV_INDEX
     builder.add(dev_id)
     builder.add(_field_description(field_by_id(10)))

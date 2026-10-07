@@ -25,6 +25,68 @@ def _ts_ms() -> int:
     return int(datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC).timestamp() * 1000)
 
 
+def test_missing_application_version_is_read(tmp_path: Path) -> None:
+    path = tmp_path / "no_version.fit"
+    builder = FitFileBuilder(auto_define=True, min_string_size=64)
+
+    file_id = FileIdMessage()
+    file_id.type = FileType.ACTIVITY
+    file_id.manufacturer = Manufacturer.DEVELOPMENT
+    file_id.time_created = _ts_ms()
+    builder.add(file_id)
+
+    dev_id = DeveloperDataIdMessage()
+    dev_id.application_id = APPLICATION_ID
+    dev_id.developer_data_index = 0
+    builder.add(dev_id)
+
+    session = SessionMessage()
+    session.start_time = _ts_ms()
+    session.timestamp = _ts_ms()
+    builder.add(session)
+
+    rec = RecordMessage()
+    rec.timestamp = _ts_ms()
+    rec.distance = 12.5
+    builder.add(rec)
+    builder.build().to_file(str(path))
+
+    loaded = read_fit(path)
+    assert loaded.records[0].distance_m == 12.5
+    assert all(issue.code != "protocol_version" for issue in loaded.read_issues)
+
+
+def test_newer_application_version_still_reads(tmp_path: Path) -> None:
+    path = tmp_path / "newer.fit"
+    builder = FitFileBuilder(auto_define=True, min_string_size=64)
+
+    file_id = FileIdMessage()
+    file_id.type = FileType.ACTIVITY
+    file_id.manufacturer = Manufacturer.DEVELOPMENT
+    file_id.time_created = _ts_ms()
+    builder.add(file_id)
+
+    dev_id = DeveloperDataIdMessage()
+    dev_id.application_id = APPLICATION_ID
+    dev_id.application_version = 99
+    dev_id.developer_data_index = 0
+    builder.add(dev_id)
+
+    session = SessionMessage()
+    session.start_time = _ts_ms()
+    session.timestamp = _ts_ms()
+    builder.add(session)
+
+    rec = RecordMessage()
+    rec.timestamp = _ts_ms()
+    builder.add(rec)
+    builder.build().to_file(str(path))
+
+    loaded = read_fit(path)
+    assert len(loaded.records) == 1
+    assert any(issue.code == "protocol_version" for issue in loaded.read_issues)
+
+
 def test_foreign_developer_drive_length_is_ignored(tmp_path: Path) -> None:
     path = tmp_path / "foreign.fit"
     other_app = uuid4().bytes

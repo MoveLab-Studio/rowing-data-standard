@@ -70,6 +70,16 @@ def _record_issues(record: Record, index: int) -> list[Issue]:
         except CodecError as exc:
             issues.append(Issue("error", "overflow", str(exc), index))
 
+    if record.heart_rate == 0:
+        issues.append(
+            Issue(
+                "warning",
+                "heart_rate",
+                "heart_rate 0 is omitted; leave the field out when there is no sensor",
+                index,
+            )
+        )
+
     rate = record.resolved_stroke_rate()
     drive = record.stroke_drive_time_ms
     recovery = record.stroke_recovery_time_ms

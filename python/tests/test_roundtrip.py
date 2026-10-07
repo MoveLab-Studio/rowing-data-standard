@@ -63,6 +63,21 @@ def test_validate_warns_on_typical_range_and_timing() -> None:
     assert all(issue.level == "warning" for issue in issues)
 
 
+def test_validate_warns_when_heart_rate_is_zero() -> None:
+    session = RowingSession(
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                heart_rate=0,
+            ),
+        )
+    )
+    issues = validate(session)
+    assert any(
+        issue.level == "warning" and issue.code == "heart_rate" for issue in issues
+    )
+
+
 def test_validate_overflow_is_error() -> None:
     session = RowingSession(
         records=(

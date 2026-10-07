@@ -239,7 +239,8 @@ def _set_native_fields(rec: RecordMessage, record: Record) -> None:
     if record.distance_m is not None:
         encode(field_by_name("distance"), record.distance_m)
         rec.distance = float(record.distance_m)
-    if record.heart_rate is not None:
+    # 0 means "no sensor" in some devices. Omit the field instead of writing it.
+    if record.heart_rate not in (None, 0):
         encode(field_by_name("heart_rate"), record.heart_rate)
         rec.heart_rate = record.heart_rate
     if record.power is not None:

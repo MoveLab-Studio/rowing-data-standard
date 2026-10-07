@@ -105,6 +105,12 @@ def test_native_field_scales_match_spec_section_4() -> None:
         assert field.units == units
 
 
+def test_cycle_length16_is_boat_travel_per_stroke() -> None:
+    notes = field_by_name("cycle_length16").notes
+    assert "Not cumulative distance" in notes
+    assert "DriveLength" in notes
+
+
 def test_recording_strategy_enum() -> None:
     assert RecordingStrategy.UNKNOWN == 0
     assert RecordingStrategy.STROKE_BOUNDARY == 1

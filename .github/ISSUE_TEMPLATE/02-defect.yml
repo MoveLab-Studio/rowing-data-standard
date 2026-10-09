@@ -14,8 +14,8 @@ body:
       label: What conflicts with what
       description: Quote both places, with section numbers.
       placeholder: |
-        §5.2 says EffectiveLength (16) is UINT16, scale 1, mm
-        §5.3 says EffectiveLengthPort (210) is UINT16, scale 100, m
+        §X.Y says FieldName (ID) is UINT16, scale 1, mm
+        §X.Z says FieldName (ID) is UINT16, scale 100, m
     validations:
       required: true
   - type: textarea

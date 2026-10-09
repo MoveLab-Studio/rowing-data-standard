@@ -12,7 +12,7 @@ body:
 
         If it survives, we will ask you to write a
         [proposal](https://github.com/MoveLab-Studio/rowing-data-standard/blob/main/proposals/README.md).
-        Field IDs are a single scarce byte, 0–255, so nothing is allocated casually.
+        Field IDs are a single scarce byte, 0–254, so nothing is allocated casually.
   - type: textarea
     id: measurement
     attributes:

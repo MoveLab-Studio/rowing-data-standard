@@ -1,7 +1,7 @@
 """Conformance checks for a RowingSession (Draft v0.1, core fields).
 
 Hard errors are type-limit violations and an unknown RecordingStrategy value.
-Typical-range and timing consistency checks are warnings only (§8).
+Typical-range and timing consistency checks are warnings only (§7).
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from .codec import CodecError, encode
 from .fields import field_by_id, field_by_name
 from .model import NATIVE_RECORD_ATTRS, RECORD_DEVELOPER_ATTRS, Record, RowingSession
 
-# Informative typical ranges from spec §8.1 — not encoding limits.
+# Informative typical ranges from spec §7.1 — not encoding limits.
 _TYPICAL = {
     "average_drive_force_n": (0.0, 2000.0),
     "peak_drive_force_n": (0.0, 2000.0),

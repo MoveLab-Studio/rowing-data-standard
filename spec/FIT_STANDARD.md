@@ -400,9 +400,9 @@ The curve is produced on a best-effort basis: a producer writes the force curve 
 Curve data MUST be encoded as **UINT16** arrays (developer fields with array size > 1):
 
 - **Maximum points per curve:** 127 (FIT limit: 255 bytes / 2 bytes per UINT16)
-- **Encoding:** Unsigned 16-bit integers in range [0, 65535]
+- **Encoding:** Unsigned 16-bit integers in range [0, 65534]. 65535 is the FIT invalid value for UINT16 and marks a missing sample
 - **Data representation:** Handle force is non-negative; negative measured values MUST be written as 0
-- **Scale factor:** As declared in §6.4 and in the developer field description. Values are clipped to [0, 65535] after scaling.
+- **Scale factor:** As declared in §6.4 and in the developer field description. Values are clipped to [0, 65534] after scaling.
 
 ### 6.6 Companion Files
 
@@ -428,6 +428,7 @@ Consumers MAY warn on values outside typical ranges but MUST accept physically v
 - Missing or unavailable fields SHOULD be omitted from the file
 - Producers MUST NOT emit fields with placeholder values (e.g., -1, 999) without documentation
 - Zero values SHOULD indicate actual measurements of zero (not missing data)
+- Each FIT base type has an invalid value that means "no data": 255 for UINT8, 65535 for UINT16, 32767 for SINT16. Producers MUST NOT write it for a measured value; a measurement that would encode to it is clipped to the next valid value. Consumers MUST treat it as missing
 
 ### 8.3 Consistency
 

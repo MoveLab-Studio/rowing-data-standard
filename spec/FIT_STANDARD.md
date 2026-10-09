@@ -153,7 +153,7 @@ Consumers MUST:
 4. **Detect stroke occurrences** by monitoring changes in the native `total_cycles` field:
    - When `total_cycles` changes between consecutive records, at least one stroke occurred
    - If change is >1, multiple strokes occurred but per-stroke data for intermediate strokes is unavailable
-5. **Calculate stroke rate** from the **StrokeRate** developer field (ID 93) when present, else from native `cadence` plus `fractional_cadence` when available, else from integer `cadence` alone — not from record message frequency
+5. **Calculate stroke rate** from native `cadence256` when present, else from integer `cadence` — not from record message frequency
 6. **Handle missing developer fields gracefully** (all developer fields are optional)
 
 ### 3.2 Recommended Requirements
@@ -178,8 +178,8 @@ Producers SHOULD use these native FIT fields for rowing data:
 |-----------|------|-------|-------|
 | timestamp | UINT32 | Record timestamp | Milliseconds since Garmin epoch (1989-12-31 UTC) |
 | distance | UINT32 | Cumulative distance | Meters, scale 100 |
-| cadence | UINT8 | Stroke rate (integer spm) | Strokes per minute; retain for backward compatibility |
-| fractional_cadence | UINT8 | Stroke rate fraction | Fractional part of cadence (scale 1/128 spm); SHOULD be written when fractional rate is known |
+| cadence | UINT8 | Stroke rate (integer spm) | Strokes per minute, **rounded** to the nearest integer (not truncated); MUST be written when rate is known, for consumers that do not read `cadence256` |
+| cadence256 | UINT16 | Stroke rate (fractional spm) | Strokes per minute, scale 256 (1/256 spm); SHOULD be written when fractional rate is known |
 | heart_rate | UINT8 | Heart rate | Beats per minute, 0-255 |
 | power | UINT16 | Average power | Watts, 0-65535 |
 | enhanced_speed | UINT32 | Boat speed | Meters per second (scale 1000) |
@@ -203,13 +203,12 @@ Producers SHOULD use these native FIT fields for rowing data:
 | AverageBoatSpeed | 8 | UINT16 | 255 | m/s | Average boat speed during stroke | 3-6 m/s |
 | WorkoutState | 9 | UINT8 | 1 | | Rowing state indicator | See WorkoutState values |
 | StrokeWork | 19 | UINT16 | 1 | J | Work done over full stroke cycle | 100-500 J |
-| StrokeRate | 93 | UINT16 | 100 | spm | Per-stroke rate with 0.01 spm precision | 10-40 spm typical |
 
 **Notes:**
 
 - **DriveLength**: For OTW rowing, projection of handle trajectory on longitudinal axis. For indoor, handle travel catch-to-finish. Stored in **millimeters** (scale 1, units mm) for 1 mm precision (v1.2; v1.1 used scale 100 with units m).
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
-- **StrokeRate**: High-precision per-stroke rate. Native `cadence` (integer spm) MUST still be written for backward compatibility when rate is known. Producers SHOULD also write `fractional_cadence` on Record messages when fractional rate is known.
+- **Stroke rate** is carried by the native `cadence` and `cadence256` fields (§4), not by a developer field. Producers MUST NOT write native `fractional_cadence`: common platforms ignore it, and `cadence256` carries the same information.
 
 ### 5.2 Oarlock Metrics (Single, Record-Level)
 
@@ -409,7 +408,7 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 | 20-59 | In-stroke summaries | Dynamic allocation |
 | 60-89 | In-stroke curve arrays | Dynamic allocation |
 | 90-92 | In-stroke axis metadata | Assigned |
-| 93-199 | Extended standard fields | StrokeRate (93) assigned; remainder available |
+| 93-199 | Extended standard fields | Available |
 | 200-211 | Dual oarlock per-side | Assigned |
 | 212-255 | Reserved for future extensions | Available |
 

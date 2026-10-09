@@ -190,7 +190,7 @@ Producers SHOULD use these native FIT fields for rowing data:
 
 | FIT Field | Type | Usage | Notes |
 |-----------|------|-------|-------|
-| timestamp | UINT32 | Record timestamp | Milliseconds since Garmin epoch (1989-12-31 UTC) |
+| timestamp | UINT32 | Record timestamp | Seconds since Garmin epoch (1989-12-31 UTC) |
 | distance | UINT32 | Cumulative distance | Meters, scale 100 |
 | cadence | UINT8 | Stroke rate (integer spm) | Strokes per minute, **rounded** to the nearest integer (not truncated); MUST be written when rate is known, for consumers that do not read `cadence256` |
 | cadence256 | UINT16 | Stroke rate (fractional spm) | Strokes per minute, scale 256 (1/256 spm); SHOULD be written when fractional rate is known |
@@ -222,7 +222,7 @@ A common convention for grouping laps into workouts and splits is expected in a 
 
 | Field Name | ID | Base Type | Scale | Units | Definition | Typical Range |
 |------------|----|-----------| ------|-------|------------|---------------|
-| DriveLength | 0 | UINT16 | 1 | mm | Distance traveled by handle along longitudinal axis during drive phase | 1.2-1.5 m |
+| DriveLength | 0 | UINT16 | 1 | mm | Distance traveled by handle along longitudinal axis during drive phase | 1200-1500 mm |
 | StrokeDriveTime | 1 | UINT16 | 1 | ms | Duration of drive phase | 300-600 ms |
 | DragFactor | 2 | UINT16 | 1 | | Resistance setting (ergometer) | Device-specific |
 | StrokeRecoveryTime | 3 | UINT16 | 1 | ms | Duration of recovery phase | 500-1500 ms |
@@ -343,7 +343,7 @@ In-stroke curve data describes how a quantity develops through a single stroke. 
 
 All other curves, such as boat acceleration, seat position and oar angular velocity, and any curve at a higher resolution than §6.5 allows, belong in the companion JSON file (§6.6). Their meaning depends on the exact equipment that measured them, and they would quickly grow the FIT file past what is practical to exchange.
 
-**Constraint:** In-stroke curve data MUST only appear when `RecordingStrategy=StrokeBoundary` (or Unknown with stroke-boundary semantics), as curves require stroke boundaries for interpretation.
+**Constraint:** In-stroke curve data MUST only appear when `RecordingStrategy=StrokeBoundary`, or when `RecordingStrategy` is absent or Unknown and each Record carrying a curve describes exactly one stroke, as curves require stroke boundaries for interpretation.
 
 ### 6.2 Field ID Allocation
 
@@ -412,12 +412,12 @@ Data that does not fit the FIT file MAY be shipped in a companion `.json` file. 
 
 ### 8.1 Value Ranges
 
-Producers MUST NOT exceed FIT type limits (encoded value × scale must fit the base type). Producers SHOULD NOT clamp valid measurements to “typical” ranges.
+Producers MUST NOT exceed FIT type limits (the value multiplied by its scale must fit the base type). Producers SHOULD NOT clamp valid measurements to “typical” ranges.
 
 **Typical ranges** (informative, not encoding limits):
 
 - Force: 0-2000 N typical maximum
-- DriveLength: 1.2-1.5 m for full strokes; arms-only strokes may be ~0.3 m
+- DriveLength: 1200-1500 mm for full strokes; arms-only strokes may be ~300 mm
 - Angles: -180 to +180 degrees
 - Stroke rate: 10-40 spm typical; sprint work may exceed 60 spm (up to ~100 spm)
 
@@ -426,14 +426,14 @@ Consumers MAY warn on values outside typical ranges but MUST accept physically v
 ### 8.2 Missing Data
 
 - Missing or unavailable fields SHOULD be omitted from the file
-- Producers MUST NOT emit fields with placeholder values (e.g., -1, 999) without documentation
+- Producers MUST NOT write placeholder values (e.g., -1, 999) for missing data; they omit the field instead
 - Zero values SHOULD indicate actual measurements of zero (not missing data)
 
 ### 8.3 Consistency
 
 While strict validation is not enforced, producers SHOULD maintain internal consistency:
 
-- Drive + recovery time ≈ stroke period (60 / cadence)
+- Drive + recovery time ≈ stroke period (60000 / stroke rate, in ms)
 - In-stroke axis metadata consistent with stroke scalars
 - Summary oarlock fields = average of per-side fields (when both present)
 

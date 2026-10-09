@@ -3,7 +3,7 @@
 > ### ⚠️ Draft — not ratified
 >
 > This document is a **working draft**. Nothing in it is final: field IDs, scales,
-> units, compliance levels and the conformance language itself are all open to
+> units and the conformance language itself are all open to
 > change until the governance group ratifies a version. Do not treat any part of
 > this text as a stable contract for shipping products yet.
 >
@@ -29,8 +29,8 @@
 > they stand.
 >
 > **Known inconsistencies are left in place, not silently corrected.** Several
-> parts of this text contradict each other — units, field ID ranges and the
-> compliance level definitions among them. They are raised on the issue tracker
+> parts of this text contradict each other — units and field ID ranges
+> among them. They are raised on the issue tracker
 > so each one is decided on the record, because a "fix" to a unit or a scale
 > changes what goes into the file.
 
@@ -399,36 +399,6 @@ As an alternative or supplement to full curves, summary statistics MAY be provid
 ### 6.7 Companion Files
 
 Data that does not fit the FIT file MAY be shipped in a companion `.json` file. This standard does not define its contents or structure; that is up to the producer. The companion file is optional: a FIT file MUST be complete and conforming without it, and consumers MAY ignore it.
-
-## 7. Compliance Levels
-
-Implementers MAY choose compliance levels based on their capabilities:
-
-### Level 1: Minimal
-
-- Native FIT fields only
-- `RecordingStrategy` on Session (recommended)
-- Supports at least one recording strategy
-
-### Level 2: Standard
-
-- Level 1 requirements
-- Core rowing metrics (IDs 0-9, 19)
-- Handles missing developer fields gracefully
-
-### Level 3: Full
-
-- Level 2 requirements
-- Oarlock metrics (IDs 11-18)
-- In-stroke axis metadata (IDs 90-92)
-- At least one in-stroke curve type
-
-### Level 4: Advanced
-
-- Level 3 requirements
-- Dual oarlock per-side metrics (IDs 200-211)
-- Multiple in-stroke curve types
-- Curve summary statistics
 
 ## 8. Data Quality and Validation
 

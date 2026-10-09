@@ -1,4 +1,4 @@
-"""Write a RowingSession to a Garmin FIT file (Draft v0.1, Levels 1–2)."""
+"""Write a RowingSession to a Garmin FIT file (Draft v0.1, core fields)."""
 
 from __future__ import annotations
 

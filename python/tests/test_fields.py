@@ -1,4 +1,4 @@
-"""Registry matches Draft v0.1 assigned Level 1–2 fields."""
+"""Registry matches Draft v0.1 assigned core fields."""
 
 from __future__ import annotations
 

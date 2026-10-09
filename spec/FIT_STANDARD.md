@@ -353,11 +353,7 @@ As an alternative or supplement to full curves, summary statistics MAY be provid
 
 ### 6.7 Companion Files
 
-For curves exceeding 127 points, producers MAY use companion JSON files:
-
-- **Filename:** Same basename as FIT file with `.instroke.json` extension
-- **Format:** JSON object with curve names as keys, arrays of per-stroke samples as values
-- **Metadata:** Include `_rowingdata_instroke` object with version, abscissa type, point counts
+Data that does not fit the FIT file MAY be shipped in a companion `.json` file. This standard does not define its contents or structure; that is up to the producer. The companion file is optional: a FIT file MUST be complete and conforming without it, and consumers MAY ignore it.
 
 ## 7. Compliance Levels
 

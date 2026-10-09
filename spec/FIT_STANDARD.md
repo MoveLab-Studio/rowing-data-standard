@@ -198,10 +198,8 @@ Producers SHOULD use these native FIT fields for rowing data:
 | StrokeDriveTime | 1 | UINT16 | 1 | ms | Duration of drive phase | 300-600 ms |
 | DragFactor | 2 | UINT16 | 1 | | Resistance setting (ergometer) | Device-specific |
 | StrokeRecoveryTime | 3 | UINT16 | 1 | ms | Duration of recovery phase | 500-1500 ms |
-| AverageDriveForceLbs | 4 | UINT16 | 10 | lbs | Average force during drive (deprecated) | - |
-| PeakDriveForceLbs | 5 | UINT16 | 10 | lbs | Peak force during drive (deprecated) | - |
-| AverageDriveForceN | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
-| PeakDriveForceN | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
+| AverageDriveForce | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
+| PeakDriveForce | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
 | AverageBoatSpeed | 8 | UINT16 | 255 | m/s | Average boat speed during stroke | 3-6 m/s |
 | WorkoutState | 9 | UINT8 | 1 | | Rowing state indicator | See WorkoutState values |
 | StrokeWork | 19 | UINT16 | 1 | J | Work done over full stroke cycle | 100-500 J |
@@ -210,7 +208,6 @@ Producers SHOULD use these native FIT fields for rowing data:
 **Notes:**
 
 - **DriveLength**: For OTW rowing, projection of handle trajectory on longitudinal axis. For indoor, handle travel catch-to-finish. Stored in **millimeters** (scale 1, units mm) for 1 mm precision (v1.2; v1.1 used scale 100 with units m).
-- **Force fields**: Newtons (IDs 6-7) are RECOMMENDED. Pounds (IDs 4-5) retained for backward compatibility only.
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
 - **StrokeRate**: High-precision per-stroke rate. Native `cadence` (integer spm) MUST still be written for backward compatibility when rate is known. Producers SHOULD also write `fractional_cadence` on Record messages when fractional rate is known.
 
@@ -415,15 +412,6 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 | 93-199 | Extended standard fields | StrokeRate (93) assigned; remainder available |
 | 200-211 | Dual oarlock per-side | Assigned |
 | 212-255 | Reserved for future extensions | Available |
-
-### 9.2 Deprecated Fields
-
-| Field ID | Name | Status | Replacement |
-|----------|------|--------|-------------|
-| 4 | AverageDriveForceLbs | Deprecated | AverageDriveForceN (ID 6) |
-| 5 | PeakDriveForceLbs | Deprecated | PeakDriveForceN (ID 7) |
-
-Producers SHOULD use Newtons for new implementations. Consumers MUST continue to support pounds for backward compatibility.
 
 ## 10. Version History
 

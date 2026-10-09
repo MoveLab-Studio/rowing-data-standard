@@ -63,7 +63,7 @@ whatever of 20–89 the curve allocation does not consume.
 | 6 | `AverageDriveForce` | UINT16 | 10 | N | Average force over the drive |
 | 7 | `PeakDriveForce` | UINT16 | 10 | N | Peak force over the drive |
 | 8 | `AverageBoatSpeed` | UINT16 | 255 | m/s | Averaged over the stroke |
-| 9 | `WorkoutState` | UINT8 | 1 | — | Rowing state indicator |
+| 9 | `WorkoutState` | UINT8 | 1 | — | Values of the native FIT `intensity` enum: `0` Active, `1` Rest, `2` Warmup, `3` Cooldown, `4` Recovery, `5` Interval, `6` Other |
 | 19 | `StrokeWork` | UINT16 | 1 | J | Full stroke cycle, not drive-only |
 
 ### Record message — oarlock metrics (single / summary)

@@ -339,15 +339,20 @@ The force thresholds an oarlock system uses to determine Slip and Wash, and so t
 
 ### 6.1 Overview
 
-In-stroke curve data provides high-resolution force, acceleration, or angle measurements throughout a stroke cycle. This data enables detailed stroke analysis and technique visualization.
+In-stroke curve data describes how a quantity develops through a single stroke. This standard puts exactly **one** curve in the FIT file, the **handle force curve** (§6.4). Every platform can present it meaningfully, whatever equipment recorded it.
+
+All other curves, such as boat acceleration, seat position and oar angular velocity, and any curve at a higher resolution than §6.5 allows, belong in the companion JSON file (§6.6). Their meaning depends on the exact equipment that measured them, and they would quickly grow the FIT file past what is practical to exchange.
 
 **Constraint:** In-stroke curve data MUST only appear when `RecordingStrategy=StrokeBoundary` (or Unknown with stroke-boundary semantics), as curves require stroke boundaries for interpretation.
 
 ### 6.2 Field ID Allocation
 
-- **90-92**: Axis metadata (per-Record)
-- **20-59**: Curve summary statistics (dynamic, per-curve-type)
-- **60-255**: Curve arrays (dynamic, per-curve-type)
+| ID | Field |
+|----|-------|
+| 60 | HandleForceCurve (§6.4) |
+| 90-92 | Axis metadata (§6.3) |
+
+IDs 20-59 and 61-89 are reserved for future curve data. Curve field IDs are fixed; producers MUST NOT allocate them dynamically.
 
 ### 6.3 Axis Metadata Fields (Record-Level)
 
@@ -363,7 +368,7 @@ These fields define the X-axis interpretation for curve data on each Record:
 
 | Value | Name | InstrokeSampleInterval Meaning |
 |-------|------|--------------------------------|
-| 0 | UNKNOWN | Not specified (shape-only curves) |
+| 0 | UNKNOWN | Not specified. Producers MUST NOT write this value (see rules) |
 | 1 | TIME_UNIFORM_MS | Milliseconds between samples |
 | 2 | HANDLE_DISTANCE_UNIFORM_M | Millimeters between uniform samples along handle travel |
 | 3 | OAR_ANGLE_UNIFORM_DEG | Degrees between samples (scale as documented) |
@@ -372,45 +377,34 @@ These fields define the X-axis interpretation for curve data on each Record:
 **Rules:**
 
 - Axis metadata fields MUST appear together on each Record containing curve data
+- Producers MUST declare the X-axis explicitly: InstrokeAbscissaType MUST NOT be 0 (UNKNOWN). Consumers that encounter 0 in older files SHOULD treat the curve as shape-only, for pattern analysis and not absolute plotting
 - For Type=TIME_UNIFORM_MS with known drive time: `InstrokeSampleInterval = drive_time_ms / (point_count - 1)`
-- For Type=HANDLE_DISTANCE_UNIFORM_M with known drive length, `InstrokeSampleInterval = DriveLength / (point_count - 1)`
+- For Type=HANDLE_DISTANCE_UNIFORM_M with known drive length: `InstrokeSampleInterval = DriveLength / (point_count - 1)`; sample index `k` maps to handle position `k × InstrokeSampleInterval` from the catch
 - For Type=OAR_ANGLE_UNIFORM_DEG: Domain is [Catch, Finish] angles (from fields 11-12)
-- Type=UNKNOWN indicates shape-only data (for pattern analysis, not absolute plotting)
 - Producers SHOULD strive for consistency between axis metadata and stroke scalars, but consumers SHOULD NOT enforce strict validation
 
-### 6.4 Standard Curve Types
+### 6.4 HandleForceCurve
 
-Recommended curve type names and encoding (Y-axis scale in developer field description):
+| Field Name | ID | Base Type | Scale | Units | Definition |
+|------------|----|-----------| ------|-------|------------|
+| HandleForceCurve | 60 | UINT16 array | 10 | N | Force on the handle through the drive, sampled uniformly along the declared abscissa |
 
-| Curve Name | Typical Data | Y Units | Y Scale (UINT16) | Recommended Abscissa |
-|------------|--------------|---------|------------------|----------------------|
-| HandleForceCurve | Handle force over stroke | N | 10 (0.1 N) | HANDLE_DISTANCE_UNIFORM_M (erg) or TIME_UNIFORM_MS (OTW) |
-| BoatAcceleratorCurve | Boat acceleration | m/s² | 100 (0.01 m/s²) | TIME_UNIFORM_MS |
-| OarAngleVelocityCurve | Angular velocity of oar | deg/s | 10 (0.1 deg/s) | TIME_UNIFORM_MS or OAR_ANGLE_UNIFORM_DEG |
-| SeatCurve | Seat position | m | 255 (~4 mm) | HANDLE_DISTANCE_UNIFORM_M or TIME_UNIFORM_MS |
+**Recommended abscissa:** HANDLE_DISTANCE_UNIFORM_M on an ergometer, TIME_UNIFORM_MS on the water.
 
-Curve samples are **uniformly spaced** along the declared abscissa (fields 90-92). Non-uniform source data MUST be resampled before export or stored in a companion JSON file.
+Curve samples are **uniformly spaced** along the declared abscissa (fields 90-92). Non-uniform source data MUST be resampled before export. The unresampled data MAY additionally be stored in the companion JSON file.
+
+The curve is produced on a best-effort basis: a producer writes the force curve its equipment measures, at the resolution it can, within the limits of §6.5.
 
 ### 6.5 Curve Array Format
 
 Curve data MUST be encoded as **UINT16** arrays (developer fields with array size > 1):
 
 - **Maximum points per curve:** 127 (FIT limit: 255 bytes / 2 bytes per UINT16)
-- **Field ID allocation:** Start at 60, increment per curve type
 - **Encoding:** Unsigned 16-bit integers in range [0, 65535]
-- **Data representation:** Values are clipped to [0, 65535] range; negative values not supported
-- **Scale factor:** Declared per curve type in developer field description (see §6.4). Values are clipped to [0, 65535] after scaling.
+- **Data representation:** Handle force is non-negative; negative measured values MUST be written as 0
+- **Scale factor:** As declared in §6.4 and in the developer field description. Values are clipped to [0, 65535] after scaling.
 
-**Note on signed data:** FIT SDK developer fields with arrays only reliably support UINT16 base type. For force curves and other rowing metrics, values are naturally non-negative. If future curve types require negative values, implement offset transformation (e.g., add 32768) and document in field description.
-
-### 6.6 Curve Summary Statistics
-
-As an alternative or supplement to full curves, summary statistics MAY be provided:
-
-- **Field ID allocation:** Start at 20, increment per curve and metric
-- **Metrics:** q1, q2, q3, q4 (quartile variations), diff (change), maxpos, minpos (normalized positions)
-
-### 6.7 Companion Files
+### 6.6 Companion Files
 
 Data that does not fit the FIT file MAY be shipped in a companion `.json` file. This standard does not define its contents or structure; that is up to the producer. The companion file is optional: a FIT file MUST be complete and conforming without it, and consumers MAY ignore it.
 
@@ -452,8 +446,9 @@ A developer field number is a single byte (`field_definition_number`, UINT8), an
 | Range | Purpose | Status |
 |-------|---------|--------|
 | 0-19 | Core rowing metrics | Assigned |
-| 20-59 | In-stroke summaries | Dynamic allocation |
-| 60-89 | In-stroke curve arrays | Dynamic allocation |
+| 20-59 | Reserved for future curve data | Available |
+| 60 | HandleForceCurve | Assigned |
+| 61-89 | Reserved for future curve data | Available |
 | 90-92 | In-stroke axis metadata | Assigned |
 | 93-199 | Extended standard fields | SlipThreshold (94), WashThreshold (95) and StrokeState (96) assigned; remainder available |
 | 200-211 | Dual oarlock per-side | Assigned |

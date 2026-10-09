@@ -200,7 +200,12 @@ Producers SHOULD use these native FIT fields for rowing data:
 | position_lat | SINT32 | Latitude | Semicircles |
 | position_long | SINT32 | Longitude | Semicircles |
 | total_cycles | UINT32 | Cumulative stroke count | MAY repeat (GPS-update) or increment by >1 |
-| cycle_length16 | UINT16 | Stroke distance | Distance per stroke cycle, scale 100, max 655m |
+| cycle_length16 | UINT16 | Stroke distance | Distance the boat travels during this stroke cycle, scale 100, max 655m. See notes |
+
+**Notes:**
+
+- **heart_rate**: Heart rate is written in the native `heart_rate` field on the same Record messages as the rowing data, whether it comes from the rowing device or from a separate sensor. It is not repeated as a developer field. When no heart rate sensor is connected, producers SHOULD omit the field rather than write 0. Session and Lap averages and maxima go in the native `avg_heart_rate` and `max_heart_rate` fields.
+- **cycle_length16**: The distance the boat (or, on an ergometer, the virtual boat) travels during one stroke cycle, catch to catch. It is not the cumulative distance travelled, which is `distance`, and not the travel of the handle, which is DriveLength (§5.1).
 
 ### 4.1 Sessions, Laps and Intervals
 

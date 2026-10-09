@@ -169,7 +169,7 @@ carry the data an unaware consumer will read.
 | `enhanced_speed` | Boat speed | m/s, scale 1000 |
 | `position_lat` / `position_long` | Position | Semicircles |
 | `total_cycles` | Cumulative stroke count | The stroke-detection signal; may repeat or jump by >1 |
-| `cycle_length16` | Distance per stroke | m, scale 100, max 655 m |
+| `cycle_length16` | Distance the boat travels per stroke cycle | m, scale 100, max 655 m. Not cumulative distance, not handle travel |
 
 ## Requesting an ID
 

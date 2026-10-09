@@ -202,6 +202,15 @@ Producers SHOULD use these native FIT fields for rowing data:
 | total_cycles | UINT32 | Cumulative stroke count | MAY repeat (GPS-update) or increment by >1 |
 | cycle_length16 | UINT16 | Stroke distance | Distance per stroke cycle, scale 100, max 655m |
 
+### 4.1 Sessions, Laps and Intervals
+
+How a workout is divided into Session, Lap and Split messages follows the FIT activity file conventions, see the [FIT activity file documentation](https://developer.garmin.com/fit/file-types/activity/) and the [encoding cookbook](https://developer.garmin.com/fit/cookbook/encoding-activity-files/). This standard adds two rules for rowing:
+
+1. **Intervals are marked with intensity.** Producers SHOULD write each work and rest interval as its own Lap, and MUST set the native `intensity` field on every Lap they write (`active` for work, `rest` for rest; the full list is under WorkoutState in §5.1).
+2. **Active laps add up to moving time.** Rest and pauses MUST NOT be included in a Lap with `intensity=active`, so that a consumer gets the moving time by summing `total_timer_time` over the active Laps.
+
+A common convention for grouping laps into workouts and splits is expected in a later version.
+
 ## 5. Developer Field Specifications
 
 ### 5.1 Core Rowing Metrics (Record-Level)

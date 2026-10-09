@@ -37,13 +37,14 @@ because files carrying it already exist.
 | 20–59 | In-stroke curve summary statistics | Unallocated — allocation scheme unresolved, and the statistics themselves are underspecified |
 | 60–89 | In-stroke curve arrays | Unallocated — allocation scheme unresolved; spec §6.2 and §9.1 disagree on this range |
 | 90–92 | In-stroke axis metadata | Assigned |
-| 93–95 | Extended standard fields | **Available** |
+| 93 | Extended standard fields | **Available** |
+| 94–95 | `SlipThreshold`, `WashThreshold` (`session`-level) | Assigned |
 | 96 | `StrokeState` | Assigned |
 | 97–199 | Extended standard fields | **Available** |
 | 200–211 | Dual oarlock, per side | Assigned |
 | 212–254 | Future extensions | **Reserved** |
 
-Free capacity today: **106 fields** in 93–95 and 97–199, plus 43 reserved in 212–254, plus
+Free capacity today: **104 fields** in 93 and 97–199, plus 43 reserved in 212–254, plus
 whatever of 20–89 the curve allocation does not consume.
 
 ## Assigned fields
@@ -53,6 +54,8 @@ whatever of 20–89 the curve allocation does not consume.
 | ID | Name | Base type | Scale | Units | Notes |
 |---|---|---|---|---|---|
 | 10 | `RecordingStrategy` | UINT8 | 1 | — | `0` Unknown, `1` StrokeBoundary, `2` GPSUpdate, `3` TimeSampled. One value per file. Currently `MAY`, and §3.1 requires consumers to work without it |
+| 94 | `SlipThreshold` | UINT16 | 1 | N | Force at which the blade counts as entered. Typically 50–150 N |
+| 95 | `WashThreshold` | UINT16 | 1 | N | Force at which the blade counts as exited. Typically 50–150 N |
 
 ### Record message — core rowing metrics
 

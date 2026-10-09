@@ -321,6 +321,20 @@ When both port and starboard oarlocks are present, per-side metrics MAY be inclu
 - When only one side is available, summary fields SHOULD contain that side's value
 - Consumers implementing only partial support MAY ignore per-side fields and use summary fields
 
+### 5.4 Oarlock Settings (Session-Level)
+
+The force thresholds an oarlock system uses to determine Slip and Wash, and so the effective part of the stroke, are device settings. They do not change during a session and are written once, on the **Session message**.
+
+| Field Name | ID | Base Type | Scale | Units | Definition | Typical Range |
+|------------|----|-----------| ------|-------|------------|---------------|
+| SlipThreshold | 94 | UINT16 | 1 | N | Handle force above which the blade counts as entered; Slip (ID 13) is measured from the catch to this point | 50-150 N |
+| WashThreshold | 95 | UINT16 | 1 | N | Handle force below which the blade counts as exited; Wash (ID 14) is measured from this point to the finish | 50-150 N |
+
+**Rules:**
+
+- Producers SHOULD write these fields when they write Slip, Wash or EffectiveLength, so a consumer can tell whether values from different systems are comparable
+- When absent, consumers MUST NOT assume a threshold
+
 ## 6. In-Stroke Curve Data
 
 ### 6.1 Overview
@@ -441,7 +455,7 @@ A developer field number is a single byte (`field_definition_number`, UINT8), an
 | 20-59 | In-stroke summaries | Dynamic allocation |
 | 60-89 | In-stroke curve arrays | Dynamic allocation |
 | 90-92 | In-stroke axis metadata | Assigned |
-| 93-199 | Extended standard fields | StrokeState (96) assigned; remainder available |
+| 93-199 | Extended standard fields | SlipThreshold (94), WashThreshold (95) and StrokeState (96) assigned; remainder available |
 | 200-211 | Dual oarlock per-side | Assigned |
 | 212-254 | Reserved for future extensions | Available |
 

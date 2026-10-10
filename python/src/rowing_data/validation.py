@@ -1,4 +1,4 @@
-"""Conformance checks for a RowingSession (Draft v0.1, Levels 1–2).
+"""Conformance checks for a RowingSession (Draft v0.1, core fields).
 
 Hard errors are type-limit violations and an unknown RecordingStrategy value.
 Typical-range and timing consistency checks are warnings only (§8).
@@ -69,6 +69,16 @@ def _record_issues(record: Record, index: int) -> list[Issue]:
             encode(field_by_name(native_name), physical)
         except CodecError as exc:
             issues.append(Issue("error", "overflow", str(exc), index))
+
+    if record.heart_rate == 0:
+        issues.append(
+            Issue(
+                "warning",
+                "heart_rate",
+                "heart_rate 0 is omitted; leave the field out when there is no sensor",
+                index,
+            )
+        )
 
     rate = record.resolved_stroke_rate()
     drive = record.stroke_drive_time_ms

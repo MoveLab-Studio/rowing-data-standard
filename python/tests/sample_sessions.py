@@ -1,4 +1,4 @@
-"""Shared Level 1–2 sample sessions for tests and generated fixtures."""
+"""Shared sample sessions for tests and generated fixtures."""
 
 from __future__ import annotations
 

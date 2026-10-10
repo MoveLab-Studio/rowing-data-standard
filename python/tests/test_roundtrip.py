@@ -29,6 +29,19 @@ def test_roundtrip_stroke_boundary(tmp_path: Path) -> None:
     assert validate(loaded) == []
 
 
+def test_roundtrip_slip_and_wash_thresholds(tmp_path: Path) -> None:
+    original = RowingSession(
+        records=(Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC)),),
+        slip_threshold_n=80,
+        wash_threshold_n=120,
+    )
+    path = tmp_path / "thresholds.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.slip_threshold_n == 80
+    assert loaded.wash_threshold_n == 120
+
+
 def test_roundtrip_gps_update(tmp_path: Path) -> None:
     original = gps_update_session()
     path = tmp_path / "gps.fit"
@@ -61,6 +74,21 @@ def test_validate_warns_on_typical_range_and_timing() -> None:
     assert "typical_range" in codes
     assert "stroke_timing" in codes
     assert all(issue.level == "warning" for issue in issues)
+
+
+def test_validate_warns_when_heart_rate_is_zero() -> None:
+    session = RowingSession(
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                heart_rate=0,
+            ),
+        )
+    )
+    issues = validate(session)
+    assert any(
+        issue.level == "warning" and issue.code == "heart_rate" for issue in issues
+    )
 
 
 def test_validate_overflow_is_error() -> None:

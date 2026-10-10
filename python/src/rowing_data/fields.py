@@ -1,4 +1,4 @@
-"""Machine-readable field registry for Draft v0.1 (Levels 1–2).
+"""Machine-readable field registry for Draft v0.1 (core fields).
 
 Developer-field rows match spec/FIT_STANDARD.md and registry/field-ids.md.
 Native FIT fields are listed because producers SHOULD use them instead of
@@ -100,7 +100,7 @@ def _native(
     )
 
 
-# Assigned developer fields for Levels 1–2. IDs 11–18, 20–92, 200–211 are later.
+# Assigned core developer fields. IDs 11–18, 20–92, 200–211 are later.
 DEVELOPER_FIELDS: tuple[FieldDef, ...] = (
     _dev(0, "DriveLength", MessageType.RECORD, BaseType.UINT16, 1, "mm"),
     _dev(1, "StrokeDriveTime", MessageType.RECORD, BaseType.UINT16, 1, "ms"),
@@ -119,6 +119,8 @@ DEVELOPER_FIELDS: tuple[FieldDef, ...] = (
         notes="Opaque UINT8; the draft has no enum table.",
     ),
     _dev(10, "RecordingStrategy", MessageType.SESSION, BaseType.UINT8, 1, ""),
+    _dev(94, "SlipThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N"),
+    _dev(95, "WashThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N"),
     _dev(19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J"),
     _dev(93, "StrokeRate", MessageType.RECORD, BaseType.UINT16, 100, "spm"),
 )
@@ -146,7 +148,16 @@ NATIVE_FIELDS: tuple[FieldDef, ...] = (
     _native("position_lat", BaseType.SINT32, 1, "semicircles"),
     _native("position_long", BaseType.SINT32, 1, "semicircles"),
     _native("total_cycles", BaseType.UINT32, 1, ""),
-    _native("cycle_length16", BaseType.UINT16, CYCLE_LENGTH16_SCALE, "m"),
+    _native(
+        "cycle_length16",
+        BaseType.UINT16,
+        CYCLE_LENGTH16_SCALE,
+        "m",
+        notes=(
+            "Distance the boat travels during one stroke cycle. "
+            "Not cumulative distance, and not handle travel (DriveLength)."
+        ),
+    ),
 )
 
 _BY_ID: dict[int, FieldDef] = {

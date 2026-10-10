@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -146,9 +147,10 @@ def _our_developer_fields(
 ) -> tuple[dict[str, FieldDef], list[Issue]]:
     """Map names to registry FieldDefs for the standard application UUID only.
 
-    Decode always uses Draft v0.1 scales/units. A file that advertises a
-    different scale (for example pre-v1.2 DriveLength in metres) is not
-    converted; a warning is recorded instead.
+    When the file's units match the registry and only the scale differs, decode
+    with the scale declared in the file (AverageBoatSpeed 255 and 100 are both
+    m/s). When the units differ, as with pre-v1.2 DriveLength in metres, keep
+    the registry units and record a warning. Do not convert those values.
     """
     by_name: dict[str, FieldDef] = {}
     issues: list[Issue] = []
@@ -166,11 +168,32 @@ def _our_developer_fields(
             registry = field_by_id(int(field_id))
         except KeyError:
             continue
-        file_scale = message.get_value("scale")
+        file_scale = _raw_scale(message)
+        file_units = message.get_value("units")
+        # Scale is a UINT8. 255 is its invalid value, so parsers drop it.
+        # That byte was the old AverageBoatSpeed scale. Units are still m/s.
         if (
-            file_scale not in (None, 0)
-            and float(file_scale) != float(registry.scale)
+            file_scale is None
+            and registry.field_id == 8
+            and _units_match(file_units, registry.units)
         ):
+            file_scale = 255
+        decode_as = registry
+        scale_differs = file_scale not in (None, 0) and float(file_scale) != float(
+            registry.scale
+        )
+        if scale_differs and _units_match(file_units, registry.units):
+            decode_as = replace(registry, scale=float(file_scale))
+            issues.append(
+                Issue(
+                    "warning",
+                    "field_scale",
+                    f"{registry.name} (ID {registry.field_id}) has file scale "
+                    f"{file_scale}; decoded with that scale "
+                    f"(registry scale is {registry.scale})",
+                )
+            )
+        elif scale_differs:
             issues.append(
                 Issue(
                     "warning",
@@ -180,10 +203,27 @@ def _our_developer_fields(
                     "decoded with v0.1 units, not converted",
                 )
             )
-        by_name[registry.name] = registry
+        by_name[decode_as.name] = decode_as
         if name:
-            by_name[str(name)] = registry
+            by_name[str(name)] = decode_as
     return by_name, issues
+
+
+def _raw_scale(message) -> object:
+    """Scale byte from the field description, including 255.
+
+    255 is the UINT8 invalid value, so ``get_value`` drops a scale of 255.
+    AverageBoatSpeed used that scale before it moved to 100, and the byte is
+    still meaningful.
+    """
+    field = message.get("scale")
+    return field.raw_value
+
+
+def _units_match(file_units: object, registry_units: str) -> bool:
+    if not isinstance(file_units, str):
+        return False
+    return file_units.strip() == registry_units
 
 
 def _session_developer_int(

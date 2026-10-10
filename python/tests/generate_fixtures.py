@@ -1,4 +1,4 @@
-"""Generate committed Level 1–2 FIT fixtures from the sample sessions."""
+"""Generate committed FIT fixtures from the sample sessions."""
 
 from __future__ import annotations
 

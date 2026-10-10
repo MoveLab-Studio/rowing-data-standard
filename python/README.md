@@ -18,12 +18,22 @@ Stroke rate is native `cadence256` (scale 256) plus `cadence`, rounded to the
 nearest integer. This library does not write developer field `StrokeRate` (93)
 or native `fractional_cadence`.
 
-**Not implemented** (Level 3–4, or blocked on draft defects):
+Force is `AverageDriveForce` (6) and `PeakDriveForce` (7), in newtons. Fields 4
+and 5 are not part of this sample.
+
+`SlipThreshold` (94) and `WashThreshold` (95) are optional session fields, in
+newtons, written when set.
+
+**Not implemented** (later work, or blocked on draft defects):
 
 - Oarlock summary fields 11–18
-- Dual-oarlock 200–211 (210/211 have a metres vs millimetres conflict in the draft)
+- Dual-oarlock 200–211
 - In-stroke axis metadata 90–92, curve arrays, curve summaries, `.instroke.json`
 - WorkoutState enumeration (the draft has no value table; ID 9 is an opaque UINT8)
+
+Heart rate is the native `heart_rate` field. When no sensor is connected, omit
+it rather than write 0. `cycle_length16` is the distance the boat travels in
+one stroke cycle, not cumulative `distance` and not handle travel (DriveLength).
 
 **Pre-v1.2 files:** DriveLength used scale 100 / metres. This reader decodes
 with **v0.1 units (mm)** and records a `field_scale` warning. It does not

@@ -29,6 +29,19 @@ def test_roundtrip_stroke_boundary(tmp_path: Path) -> None:
     assert validate(loaded) == []
 
 
+def test_roundtrip_slip_and_wash_thresholds(tmp_path: Path) -> None:
+    original = RowingSession(
+        records=(Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC)),),
+        slip_threshold_n=80,
+        wash_threshold_n=120,
+    )
+    path = tmp_path / "thresholds.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.slip_threshold_n == 80
+    assert loaded.wash_threshold_n == 120
+
+
 def test_roundtrip_gps_update(tmp_path: Path) -> None:
     original = gps_update_session()
     path = tmp_path / "gps.fit"
@@ -63,12 +76,27 @@ def test_validate_warns_on_typical_range_and_timing() -> None:
     assert all(issue.level == "warning" for issue in issues)
 
 
+def test_validate_warns_when_heart_rate_is_zero() -> None:
+    session = RowingSession(
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                heart_rate=0,
+            ),
+        )
+    )
+    issues = validate(session)
+    assert any(
+        issue.level == "warning" and issue.code == "heart_rate" for issue in issues
+    )
+
+
 def test_validate_overflow_is_error() -> None:
     session = RowingSession(
         records=(
             Record(
                 timestamp=datetime(2026, 1, 1, tzinfo=UTC),
-                average_drive_force_n=7000,
+                average_drive_force=7000,
             ),
         )
     )
@@ -85,10 +113,10 @@ def _assert_record_roundtrip(got: Record, want: Record) -> None:
     assert got.drive_length_mm == want.drive_length_mm
     assert got.stroke_drive_time_ms == want.stroke_drive_time_ms
     assert got.stroke_recovery_time_ms == want.stroke_recovery_time_ms
-    if want.average_drive_force_n is not None:
-        assert got.average_drive_force_n == pytest.approx(want.average_drive_force_n)
-    if want.peak_drive_force_n is not None:
-        assert got.peak_drive_force_n == pytest.approx(want.peak_drive_force_n)
+    if want.average_drive_force is not None:
+        assert got.average_drive_force == pytest.approx(want.average_drive_force)
+    if want.peak_drive_force is not None:
+        assert got.peak_drive_force == pytest.approx(want.peak_drive_force)
     assert got.stroke_work_j == want.stroke_work_j
     assert got.heart_rate == want.heart_rate
     assert got.power == want.power
@@ -98,3 +126,42 @@ def _assert_record_roundtrip(got: Record, want: Record) -> None:
         assert got.enhanced_speed_mps == pytest.approx(
             want.enhanced_speed_mps, abs=0.001
         )
+
+
+def test_stroke_rate_precedence_matches_between_writer_and_validator(
+    tmp_path: Path,
+) -> None:
+    original = RowingSession(
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                stroke_rate=30.0,
+                cadence256=28.5,
+            ),
+        )
+    )
+    path = tmp_path / "precedence.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.records[0].cadence256 == pytest.approx(28.5)
+    assert original.records[0].resolved_stroke_rate() == pytest.approx(28.5)
+
+
+@pytest.mark.parametrize("rate", [5.0, 120.0])
+def test_validate_warns_on_stroke_rate_outside_typical_range(rate: float) -> None:
+    session = RowingSession(
+        records=(Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC), stroke_rate=rate),),
+    )
+    issues = validate(session)
+    assert any(
+        i.code == "typical_range" and "stroke_rate" in i.message for i in issues
+    )
+
+
+def test_validate_accepts_typical_stroke_rate() -> None:
+    session = RowingSession(
+        records=(
+            Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC), cadence256=24.0),
+        ),
+    )
+    assert validate(session) == []

@@ -1,4 +1,4 @@
-"""FIT writer emits the standard application ID and Level 1–2 fields."""
+"""FIT writer emits the standard application ID and core fields."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ def test_writer_application_id_and_recording_strategy(tmp_path: Path) -> None:
                 stroke_rate=28.5,
                 drive_length_mm=1420,
                 stroke_work_j=0,
-                average_drive_force_n=412.3,
+                average_drive_force=412.3,
             ),
             Record(
                 timestamp=_ts(2),
@@ -74,8 +74,10 @@ def test_writer_application_id_and_recording_strategy(tmp_path: Path) -> None:
     assert 93 not in descriptions
     assert descriptions[0] == "DriveLength"
     assert descriptions[19] == "StrokeWork"
-    assert descriptions[6] == "AverageDriveForceN"
-    assert 7 not in descriptions  # omitted PeakDriveForceN
+    assert descriptions[6] == "AverageDriveForce"
+    assert 4 not in descriptions
+    assert 5 not in descriptions
+    assert 7 not in descriptions  # omitted PeakDriveForce
 
     sessions = list(fit.get_messages("session"))
     strategy = next(field for field in sessions[0] if field.name == "RecordingStrategy")
@@ -94,7 +96,7 @@ def test_writer_application_id_and_recording_strategy(tmp_path: Path) -> None:
     assert drive.raw_value == 1420
     work = next(field for field in first if field.name == "StrokeWork")
     assert work.raw_value == 0
-    force = next(field for field in first if field.name == "AverageDriveForceN")
+    force = next(field for field in first if field.name == "AverageDriveForce")
     assert force.raw_value == 4123
     assert first.get_value("total_cycles") == 1
     assert first.get_value("distance") == pytest.approx(0.0)
@@ -109,10 +111,21 @@ def test_writer_rejects_values_that_overflow_fit_types(tmp_path: Path) -> None:
     with pytest.raises(CodecError):
         write_fit(
             _session(
-                Record(timestamp=_ts(0), average_drive_force_n=7000),
+                Record(timestamp=_ts(0), average_drive_force=7000),
             ),
             tmp_path / "overflow.fit",
         )
+
+
+def test_writer_omits_heart_rate_zero(tmp_path: Path) -> None:
+    path = tmp_path / "hr.fit"
+    write_fit(
+        _session(Record(timestamp=_ts(0), heart_rate=0, distance_m=1.0)),
+        path,
+    )
+    record = next(FitFile(str(path), check_crc=True).get_messages("record"))
+    assert record.get_value("heart_rate") is None
+    assert record.get_value("distance") == pytest.approx(1.0)
 
 
 def test_writer_rejects_native_values_that_overflow(tmp_path: Path) -> None:

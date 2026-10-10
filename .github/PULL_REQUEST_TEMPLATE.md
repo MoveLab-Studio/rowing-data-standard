@@ -7,8 +7,8 @@ Briefly, in terms of what a file or an implementation looks like afterwards.
 Tick one. If you are unsure between two, tick the heavier.
 
 - [ ] **Editorial** — typo, formatting, or wording that changes no requirement
-- [ ] **Substantive** — new or changed field, changed conformance requirement,
-      changed compliance level. *Requires a linked proposal.*
+- [ ] **Substantive** — new or changed field, changed conformance requirement.
+      *Requires a linked proposal.*
 - [ ] **Structural** — governance, licensing, repository scope
 - [ ] Repository plumbing only — templates, CI, docs about the process
 

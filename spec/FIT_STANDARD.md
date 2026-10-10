@@ -228,7 +228,7 @@ A common convention for grouping laps into workouts and splits is expected in a 
 | StrokeRecoveryTime | 3 | UINT16 | 1 | ms | Duration of recovery phase | 500-1500 ms |
 | AverageDriveForce | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
 | PeakDriveForce | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
-| AverageBoatSpeed | 8 | UINT16 | 255 | m/s | Average boat speed during stroke | 3-6 m/s |
+| AverageBoatSpeed | 8 | UINT16 | 100 | m/s | Average boat speed during stroke | 3-6 m/s |
 | WorkoutState | 9 | UINT8 | 1 | | Training intensity of the record | See WorkoutState values below |
 | StrokeWork | 19 | UINT16 | 1 | J | Work done over full stroke cycle | 100-500 J |
 | StrokeState | 96 | UINT8 | 1 | | Phase of the stroke at record time | See StrokeState values below |
@@ -236,6 +236,7 @@ A common convention for grouping laps into workouts and splits is expected in a 
 **Notes:**
 
 - **DriveLength**: For OTW rowing, projection of handle trajectory on longitudinal axis. For indoor, handle travel catch-to-finish. Stored in **millimeters** (scale 1, units mm) for 1 mm precision (v1.2; v1.1 used scale 100 with units m).
+- **AverageBoatSpeed**: Scale 100 (0.01 m/s, maximum 655.35 m/s). A scale of 1000, matching native `enhanced_speed`, is not possible: the `scale` of a FIT field description is a single byte.
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
 - **Stroke rate** is carried by the native `cadence` and `cadence256` fields (§4), not by a developer field. Producers MUST NOT write native `fractional_cadence`: common platforms ignore it, and `cadence256` carries the same information.
 

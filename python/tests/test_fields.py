@@ -30,6 +30,8 @@ EXPECTED_DEVELOPER = (
     (8, "AverageBoatSpeed", MessageType.RECORD, BaseType.UINT16, 255, "m/s", False),
     (9, "WorkoutState", MessageType.RECORD, BaseType.UINT8, 1, "", False),
     (10, "RecordingStrategy", MessageType.SESSION, BaseType.UINT8, 1, "", False),
+    (94, "SlipThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N", False),
+    (95, "WashThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N", False),
     (19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J", False),
     (93, "StrokeRate", MessageType.RECORD, BaseType.UINT16, 100, "spm", False),
 )

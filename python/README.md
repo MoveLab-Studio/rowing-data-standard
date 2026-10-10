@@ -17,6 +17,9 @@ application UUID `89e86158-6d47-5c98-9d46-7d29437f27b9`.
 §5.1 still requires native `cadence` when rate is known; this library writes
 and reads both `cadence` and ID 93.
 
+`SlipThreshold` (94) and `WashThreshold` (95) are optional session fields, in
+newtons, written when set.
+
 **Not implemented** (later work, or blocked on draft defects):
 
 - Oarlock summary fields 11–18

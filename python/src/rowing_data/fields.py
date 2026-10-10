@@ -139,6 +139,8 @@ DEVELOPER_FIELDS: tuple[FieldDef, ...] = (
         notes="Opaque UINT8; the draft has no enum table.",
     ),
     _dev(10, "RecordingStrategy", MessageType.SESSION, BaseType.UINT8, 1, ""),
+    _dev(94, "SlipThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N"),
+    _dev(95, "WashThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N"),
     _dev(19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J"),
     _dev(93, "StrokeRate", MessageType.RECORD, BaseType.UINT16, 100, "spm"),
 )

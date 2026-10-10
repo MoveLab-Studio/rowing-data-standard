@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 
 from rowing_data import read_fit, validate, write_fit
-from rowing_data.constants import RecordingStrategy, StrokeState
-from rowing_data.model import Record, RowingSession
+from rowing_data.constants import RecordingStrategy, StrokeState, WorkoutState
+from rowing_data.model import Lap, Record, RowingSession
 from sample_sessions import gps_update_session, stroke_boundary_session
 
 
@@ -84,6 +84,49 @@ def test_stroke_state_on_stroke_boundary_warns_and_is_omitted(tmp_path: Path) ->
     write_fit(session, path)
     loaded = read_fit(path)
     assert loaded.records[0].stroke_state is None
+
+
+def test_roundtrip_workout_state(tmp_path: Path) -> None:
+    original = RowingSession(
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                workout_state=WorkoutState.RECOVERY,
+            ),
+        )
+    )
+    path = tmp_path / "state.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.records[0].workout_state is WorkoutState.RECOVERY
+
+
+def test_roundtrip_lap_intensity(tmp_path: Path) -> None:
+    start = datetime(2026, 1, 1, tzinfo=UTC)
+    original = RowingSession(
+        records=(Record(timestamp=start),),
+        laps=(
+            Lap(start_time=start, intensity=WorkoutState.WARMUP),
+            Lap(start_time=start),
+        ),
+    )
+    path = tmp_path / "lap.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert [lap.intensity for lap in loaded.laps] == [
+        WorkoutState.WARMUP,
+        WorkoutState.ACTIVE,
+    ]
+
+
+def test_synthetic_lap_intensity_is_active(tmp_path: Path) -> None:
+    original = RowingSession(
+        records=(Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC)),)
+    )
+    path = tmp_path / "synthetic.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert [lap.intensity for lap in loaded.laps] == [WorkoutState.ACTIVE]
 
 
 def test_roundtrip_gps_update(tmp_path: Path) -> None:

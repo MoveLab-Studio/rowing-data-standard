@@ -33,7 +33,10 @@ newtons, written when set.
 - Oarlock summary fields 11–18
 - Dual-oarlock 200–211
 - In-stroke axis metadata 90–92, curve arrays, curve summaries, `.instroke.json`
-- WorkoutState enumeration (the draft has no value table; ID 9 is an opaque UINT8)
+
+`WorkoutState` (ID 9) uses the FIT intensity values: 0 Active, 1 Rest, 2 Warmup,
+3 Cooldown, 4 Recovery, 5 Interval, 6 Other. An unknown value is read as Other.
+When a lap's `intensity` disagrees with a record, the lap wins.
 
 Heart rate is the native `heart_rate` field. When no sensor is connected, omit
 it rather than write 0. `cycle_length16` is the distance the boat travels in

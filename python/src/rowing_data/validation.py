@@ -71,6 +71,22 @@ def _record_issues(record: Record, index: int, session: RowingSession) -> list[I
         except CodecError as exc:
             issues.append(Issue("error", "overflow", str(exc), index))
 
+    lap = _lap_for(record, session)
+    if (
+        lap is not None
+        and lap.intensity is not None
+        and record.workout_state is not None
+        and record.workout_state != lap.intensity
+    ):
+        issues.append(
+            Issue(
+                "warning",
+                "workout_state",
+                "WorkoutState disagrees with lap intensity; the lap wins",
+                index,
+            )
+        )
+
     if (
         record.stroke_state is not None
         and session.recording_strategy is not RecordingStrategy.TIME_SAMPLED
@@ -111,3 +127,11 @@ def _record_issues(record: Record, index: int, session: RowingSession) -> list[I
                 )
             )
     return issues
+
+
+def _lap_for(record: Record, session: RowingSession):
+    if record.lap_index is None:
+        return None
+    if record.lap_index < 0 or record.lap_index >= len(session.laps):
+        return None
+    return session.laps[record.lap_index]

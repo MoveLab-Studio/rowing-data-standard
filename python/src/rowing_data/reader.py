@@ -13,6 +13,7 @@ from .constants import (
     PROTOCOL_VERSION,
     RecordingStrategy,
     StrokeState,
+    WorkoutState,
 )
 from .fields import FieldDef, field_by_id, field_by_name
 from .model import ATTR_BY_FIELD_ID, Lap, Record, RowingSession
@@ -63,21 +64,23 @@ def read_fit(path: str | Path) -> RowingSession:
         wash_threshold_n = _session_developer_int(message, our_fields, "WashThreshold")
         break
 
-    laps = _laps(messages)
+    laps, lap_issues = _laps(messages)
+    issues.extend(lap_issues)
     records_list: list[Record] = []
     for message in messages:
         if message.name != "record":
             continue
-        record, state_issue = _record(message, our_fields, laps)
+        record, record_issues = _record(message, our_fields, laps)
         records_list.append(record)
-        if state_issue is not None:
-            issues.append(
+        if record_issues:
+            issues.extend(
                 Issue(
-                    state_issue.level,
-                    state_issue.code,
-                    state_issue.message,
+                    item.level,
+                    item.code,
+                    item.message,
                     len(records_list) - 1,
                 )
+                for item in record_issues
             )
     records = tuple(records_list)
     return RowingSession(
@@ -234,8 +237,9 @@ def _as_datetime(value: object) -> datetime | None:
     return None
 
 
-def _laps(messages: list) -> list[Lap]:
+def _laps(messages: list) -> tuple[list[Lap], list[Issue]]:
     laps: list[Lap] = []
+    issues: list[Issue] = []
     for message in messages:
         if message.name != "lap":
             continue
@@ -246,15 +250,49 @@ def _laps(messages: list) -> list[Lap]:
             continue
         elapsed = message.get_value("total_elapsed_time")
         distance = message.get_value("total_distance")
+        intensity, issue = _as_workout_state(message.get_value("intensity"))
+        if issue is not None:
+            issues.append(issue)
         laps.append(
             Lap(
                 start_time=start,
                 total_elapsed_s=None if elapsed is None else float(elapsed),
                 total_distance_m=None if distance is None else float(distance),
+                intensity=intensity,
             )
         )
     laps.sort(key=lambda lap: lap.start_time)
-    return laps
+    return laps, issues
+
+
+def _as_workout_state(value: object) -> tuple[WorkoutState | None, Issue | None]:
+    if value is None:
+        return None, None
+    if isinstance(value, str):
+        try:
+            return WorkoutState[value.strip().upper()], None
+        except KeyError:
+            return WorkoutState.OTHER, Issue(
+                "warning",
+                "workout_state",
+                f"WorkoutState {value!r} is unknown; treating as Other",
+            )
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return WorkoutState.OTHER, Issue(
+            "warning",
+            "workout_state",
+            f"WorkoutState {value!r} is unknown; treating as Other",
+        )
+    try:
+        return WorkoutState(number), None
+    except ValueError:
+        return WorkoutState.OTHER, Issue(
+            "warning",
+            "workout_state",
+            f"WorkoutState {number} is above 6; treating as Other",
+        )
 
 
 def _lap_index(timestamp: datetime, laps: list[Lap]) -> int | None:
@@ -271,7 +309,7 @@ def _lap_index(timestamp: datetime, laps: list[Lap]) -> int | None:
 
 def _record(
     message, our_fields: dict[str, FieldDef], laps: list[Lap]
-) -> tuple[Record, Issue | None]:
+) -> tuple[Record, list[Issue]]:
     timestamp = _as_datetime(message.get_value("timestamp"))
     if timestamp is None:
         raise ValueError("record message is missing timestamp")
@@ -312,7 +350,13 @@ def _record(
             continue
         kwargs[attr] = decoded
 
-    return Record(**kwargs), stroke_issue  # type: ignore[arg-type]
+    record_issues = [stroke_issue] if stroke_issue is not None else []
+    if kwargs.get("workout_state") is not None:
+        parsed, state_issue = _as_workout_state(kwargs["workout_state"])
+        kwargs["workout_state"] = parsed
+        if state_issue is not None:
+            record_issues.append(state_issue)
+    return Record(**kwargs), record_issues  # type: ignore[arg-type]
 
 
 def _as_stroke_state(value: object) -> tuple[StrokeState | None, Issue | None]:

@@ -168,7 +168,16 @@ NATIVE_FIELDS: tuple[FieldDef, ...] = (
     _native("position_lat", BaseType.SINT32, 1, "semicircles"),
     _native("position_long", BaseType.SINT32, 1, "semicircles"),
     _native("total_cycles", BaseType.UINT32, 1, ""),
-    _native("cycle_length16", BaseType.UINT16, CYCLE_LENGTH16_SCALE, "m"),
+    _native(
+        "cycle_length16",
+        BaseType.UINT16,
+        CYCLE_LENGTH16_SCALE,
+        "m",
+        notes=(
+            "Distance the boat travels during one stroke cycle. "
+            "Not cumulative distance, and not handle travel (DriveLength)."
+        ),
+    ),
 )
 
 _BY_ID: dict[int, FieldDef] = {

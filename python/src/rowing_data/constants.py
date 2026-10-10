@@ -12,6 +12,11 @@ from uuid import NAMESPACE_DNS, UUID, uuid5
 # Draft version this package implements. Not a ratified standard.
 STANDARD_VERSION = "0.1"
 
+# Encoding generation written in DeveloperDataId.application_version.
+# Separate from STANDARD_VERSION. Increment only when an existing field changes
+# meaning. Absent on files written before this field was defined.
+PROTOCOL_VERSION = 1
+
 APPLICATION_UUID: UUID = uuid5(NAMESPACE_DNS, "rowingdata")
 APPLICATION_ID: bytes = APPLICATION_UUID.bytes
 
@@ -35,3 +40,14 @@ class RecordingStrategy(IntEnum):
     UNKNOWN = 0
     STROKE_BOUNDARY = 1
     GPS_UPDATE = 2
+    TIME_SAMPLED = 3
+
+
+class StrokeState(IntEnum):
+    """Record developer field ID 96. Meaningful for TimeSampled files."""
+
+    UNKNOWN = 0
+    WAITING = 1
+    DRIVE = 2
+    DWELL = 3
+    RECOVERY = 4

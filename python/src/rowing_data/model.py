@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from .constants import RecordingStrategy
+from .constants import RecordingStrategy, StrokeState
 from .strokes import resolve_stroke_rate, stroke_counts
 
 
@@ -35,6 +35,7 @@ class Record:
     workout_state: int | None = None
     stroke_work_j: int | None = None
     stroke_rate: float | None = None
+    stroke_state: StrokeState | None = None
     lap_index: int | None = None
 
     def resolved_stroke_rate(self) -> float | None:
@@ -85,6 +86,7 @@ RECORD_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
     (8, "average_boat_speed_mps"),
     (9, "workout_state"),
     (19, "stroke_work_j"),
+    (96, "stroke_state"),
 )
 
 ATTR_BY_FIELD_ID = dict(RECORD_DEVELOPER_ATTRS)

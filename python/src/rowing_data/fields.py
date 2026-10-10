@@ -122,6 +122,7 @@ DEVELOPER_FIELDS: tuple[FieldDef, ...] = (
     _dev(94, "SlipThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N"),
     _dev(95, "WashThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N"),
     _dev(19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J"),
+    _dev(96, "StrokeState", MessageType.RECORD, BaseType.UINT8, 1, ""),
 )
 
 NATIVE_FIELDS: tuple[FieldDef, ...] = (

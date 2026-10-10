@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from fitparse import FitFile
 
-from rowing_data import APPLICATION_ID, APPLICATION_UUID, write_fit
+from rowing_data import APPLICATION_ID, APPLICATION_UUID, PROTOCOL_VERSION, write_fit
 from rowing_data.codec import CodecError
 from rowing_data.constants import RecordingStrategy
 from rowing_data.model import Record, RowingSession
@@ -65,6 +65,9 @@ def test_writer_application_id_and_recording_strategy(tmp_path: Path) -> None:
     fit = FitFile(str(path), check_crc=True)
     assert _app_id(fit) == APPLICATION_ID
     assert APPLICATION_UUID.bytes == APPLICATION_ID
+    dev_id = next(fit.get_messages("developer_data_id"))
+    assert dev_id.get_value("application_version") == PROTOCOL_VERSION
+    assert PROTOCOL_VERSION == 1
 
     descriptions = {
         msg.get_value("field_definition_number"): msg.get_value("field_name")

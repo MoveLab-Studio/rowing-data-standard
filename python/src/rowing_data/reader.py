@@ -9,7 +9,12 @@ from pathlib import Path
 from fitparse import FitFile
 
 from .codec import decode
-from .constants import APPLICATION_ID, RecordingStrategy
+from .constants import (
+    APPLICATION_ID,
+    PROTOCOL_VERSION,
+    RecordingStrategy,
+    StrokeState,
+)
 from .fields import FieldDef, field_by_id, field_by_name
 from .model import ATTR_BY_FIELD_ID, Lap, Record, RowingSession
 from .validation import Issue
@@ -40,6 +45,7 @@ def read_fit(path: str | Path) -> RowingSession:
     messages = list(fit.messages)
     our_indexes = _developer_indexes_for_app(messages)
     our_fields, issues = _our_developer_fields(messages, our_indexes)
+    issues.extend(_protocol_version_issues(messages))
 
     strategy = RecordingStrategy.UNKNOWN
     start_time: datetime | None = None
@@ -59,11 +65,22 @@ def read_fit(path: str | Path) -> RowingSession:
         break
 
     laps = _laps(messages)
-    records = tuple(
-        _record(message, our_fields, laps)
-        for message in messages
-        if message.name == "record"
-    )
+    records_list: list[Record] = []
+    for message in messages:
+        if message.name != "record":
+            continue
+        record, state_issue = _record(message, our_fields, laps)
+        records_list.append(record)
+        if state_issue is not None:
+            issues.append(
+                Issue(
+                    state_issue.level,
+                    state_issue.code,
+                    state_issue.message,
+                    len(records_list) - 1,
+                )
+            )
+    records = tuple(records_list)
     return RowingSession(
         records=records,
         recording_strategy=strategy,
@@ -96,6 +113,33 @@ def _developer_indexes_for_app(messages: list) -> set[int]:
         index = message.get_value("developer_data_index")
         indexes.add(0 if index is None else int(index))
     return indexes
+
+
+def _protocol_version_issues(messages: list) -> list[Issue]:
+    """Warn when the file's protocol version is newer than this sample.
+
+    A missing application_version is a file from before the field existed.
+    Those files are read. They are not rejected and they are not warned.
+    """
+    issues: list[Issue] = []
+    for message in messages:
+        if message.name != "developer_data_id":
+            continue
+        if _as_bytes(message.get_value("application_id")) != APPLICATION_ID:
+            continue
+        version = message.get_value("application_version")
+        if version is None:
+            continue
+        if int(version) > PROTOCOL_VERSION:
+            issues.append(
+                Issue(
+                    "warning",
+                    "protocol_version",
+                    f"application_version {int(version)} is newer than "
+                    f"{PROTOCOL_VERSION}; reading the fields this sample knows",
+                )
+            )
+    return issues
 
 
 def _our_developer_fields(
@@ -216,7 +260,7 @@ def _recording_strategy(
         return RecordingStrategy.UNKNOWN, Issue(
             "warning",
             "recording_strategy",
-            f"RecordingStrategy {value} is not 0, 1, or 2; treating as Unknown",
+            f"RecordingStrategy {value} is not a known value; treating as Unknown",
         )
 
 
@@ -265,7 +309,9 @@ def _lap_index(timestamp: datetime, laps: list[Lap]) -> int | None:
     return index
 
 
-def _record(message, our_fields: dict[str, FieldDef], laps: list[Lap]) -> Record:
+def _record(
+    message, our_fields: dict[str, FieldDef], laps: list[Lap]
+) -> tuple[Record, Issue | None]:
     timestamp = _as_datetime(message.get_value("timestamp"))
     if timestamp is None:
         raise ValueError("record message is missing timestamp")
@@ -285,6 +331,7 @@ def _record(message, our_fields: dict[str, FieldDef], laps: list[Lap]) -> Record
         "lap_index": _lap_index(timestamp, laps),
     }
 
+    stroke_issue: Issue | None = None
     for field in message:
         if field.name in _NATIVE_NAMES or field.name in {"unknown", None}:
             continue
@@ -297,9 +344,36 @@ def _record(message, our_fields: dict[str, FieldDef], laps: list[Lap]) -> Record
         raw = field.raw_value
         if raw is None or isinstance(raw, list | tuple):
             continue
-        kwargs[attr] = decode(spec, int(raw))
+        decoded = decode(spec, int(raw))
+        if spec.field_id == 96:
+            decoded, state_issue = _as_stroke_state(decoded)
+            kwargs[attr] = decoded
+            stroke_issue = state_issue
+            continue
+        kwargs[attr] = decoded
 
-    return Record(**kwargs)  # type: ignore[arg-type]
+    return Record(**kwargs), stroke_issue  # type: ignore[arg-type]
+
+
+def _as_stroke_state(value: object) -> tuple[StrokeState | None, Issue | None]:
+    if value is None:
+        return None, None
+    try:
+        number = int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return StrokeState.UNKNOWN, Issue(
+            "warning",
+            "stroke_state",
+            f"StrokeState {value!r} is unknown; treating as Unknown",
+        )
+    try:
+        return StrokeState(number), None
+    except ValueError:
+        return StrokeState.UNKNOWN, Issue(
+            "warning",
+            "stroke_state",
+            f"StrokeState {number} is above 4; treating as Unknown",
+        )
 
 
 def _native_int(message, name: str) -> int | None:

@@ -1,7 +1,13 @@
 """Draft v0.1 Python implementation of the Rowing Data Standard."""
 
 from .codec import CodecError, decode, encode
-from .constants import APPLICATION_ID, APPLICATION_UUID, STANDARD_VERSION
+from .constants import (
+    APPLICATION_ID,
+    APPLICATION_UUID,
+    PROTOCOL_VERSION,
+    STANDARD_VERSION,
+    StrokeState,
+)
 from .fields import (
     DEVELOPER_FIELDS,
     NATIVE_FIELDS,
@@ -23,9 +29,11 @@ __all__ = [
     "Issue",
     "Lap",
     "NATIVE_FIELDS",
+    "PROTOCOL_VERSION",
     "Record",
     "RowingSession",
     "STANDARD_VERSION",
+    "StrokeState",
     "decode",
     "encode",
     "field_by_id",

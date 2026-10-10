@@ -29,10 +29,8 @@ class Record:
     stroke_drive_time_ms: int | None = None
     drag_factor: int | None = None
     stroke_recovery_time_ms: int | None = None
-    average_drive_force_lbs: float | None = None
-    peak_drive_force_lbs: float | None = None
-    average_drive_force_n: float | None = None
-    peak_drive_force_n: float | None = None
+    average_drive_force: float | None = None
+    peak_drive_force: float | None = None
     average_boat_speed_mps: float | None = None
     workout_state: int | None = None
     stroke_work_j: int | None = None
@@ -60,6 +58,8 @@ class RowingSession:
     recording_strategy: RecordingStrategy = RecordingStrategy.UNKNOWN
     laps: tuple[Lap, ...] = field(default_factory=tuple)
     start_time: datetime | None = None
+    slip_threshold_n: int | None = None
+    wash_threshold_n: int | None = None
     # Warnings collected by read_fit (invalid RecordingStrategy, pre-v1.2 scales).
     read_issues: tuple = ()
 
@@ -74,16 +74,14 @@ class RowingSession:
         return stroke_counts([record.total_cycles for record in self.records])
 
 
-# Record attributes that map to developer field IDs (Levels 1–2).
+# Record attributes that map to developer field IDs (core fields).
 RECORD_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
     (0, "drive_length_mm"),
     (1, "stroke_drive_time_ms"),
     (2, "drag_factor"),
     (3, "stroke_recovery_time_ms"),
-    (4, "average_drive_force_lbs"),
-    (5, "peak_drive_force_lbs"),
-    (6, "average_drive_force_n"),
-    (7, "peak_drive_force_n"),
+    (6, "average_drive_force"),
+    (7, "peak_drive_force"),
     (8, "average_boat_speed_mps"),
     (9, "workout_state"),
     (19, "stroke_work_j"),
@@ -91,6 +89,12 @@ RECORD_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
 )
 
 ATTR_BY_FIELD_ID = dict(RECORD_DEVELOPER_ATTRS)
+
+# Optional session developer fields. RecordingStrategy is always written.
+SESSION_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
+    (94, "slip_threshold_n"),
+    (95, "wash_threshold_n"),
+)
 
 # Record attributes that map to native FIT fields in spec §4.
 NATIVE_RECORD_ATTRS: Sequence[tuple[str, str]] = (

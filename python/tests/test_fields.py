@@ -1,4 +1,4 @@
-"""Registry matches Draft v0.1 assigned Level 1–2 fields."""
+"""Registry matches Draft v0.1 assigned core fields."""
 
 from __future__ import annotations
 
@@ -23,13 +23,13 @@ EXPECTED_DEVELOPER = (
     (1, "StrokeDriveTime", MessageType.RECORD, BaseType.UINT16, 1, "ms", False),
     (2, "DragFactor", MessageType.RECORD, BaseType.UINT16, 1, "", False),
     (3, "StrokeRecoveryTime", MessageType.RECORD, BaseType.UINT16, 1, "ms", False),
-    (4, "AverageDriveForceLbs", MessageType.RECORD, BaseType.UINT16, 10, "lbs", True),
-    (5, "PeakDriveForceLbs", MessageType.RECORD, BaseType.UINT16, 10, "lbs", True),
-    (6, "AverageDriveForceN", MessageType.RECORD, BaseType.UINT16, 10, "N", False),
-    (7, "PeakDriveForceN", MessageType.RECORD, BaseType.UINT16, 10, "N", False),
+    (6, "AverageDriveForce", MessageType.RECORD, BaseType.UINT16, 10, "N", False),
+    (7, "PeakDriveForce", MessageType.RECORD, BaseType.UINT16, 10, "N", False),
     (8, "AverageBoatSpeed", MessageType.RECORD, BaseType.UINT16, 255, "m/s", False),
     (9, "WorkoutState", MessageType.RECORD, BaseType.UINT8, 1, "", False),
     (10, "RecordingStrategy", MessageType.SESSION, BaseType.UINT8, 1, "", False),
+    (94, "SlipThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N", False),
+    (95, "WashThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N", False),
     (19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J", False),
     (93, "StrokeRate", MessageType.RECORD, BaseType.UINT16, 100, "spm", False),
 )
@@ -82,6 +82,13 @@ def test_developer_field_ids_are_unique() -> None:
     assert len(ids) == len(set(ids))
 
 
+def test_developer_field_ids_stop_at_254() -> None:
+    """field_definition_number is UINT8; 255 is the FIT invalid value."""
+    for field in DEVELOPER_FIELDS:
+        assert field.field_id is not None
+        assert 0 <= field.field_id <= 254
+
+
 def test_field_lookup() -> None:
     assert field_by_id(93).name == "StrokeRate"
     assert field_by_name("DriveLength").field_id == 0
@@ -103,6 +110,12 @@ def test_native_field_scales_match_spec_section_4() -> None:
         assert field.base_type == base_type
         assert field.scale == scale
         assert field.units == units
+
+
+def test_cycle_length16_is_boat_travel_per_stroke() -> None:
+    notes = field_by_name("cycle_length16").notes
+    assert "Not cumulative distance" in notes
+    assert "DriveLength" in notes
 
 
 def test_recording_strategy_enum() -> None:

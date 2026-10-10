@@ -14,8 +14,8 @@ from .model import NATIVE_RECORD_ATTRS, RECORD_DEVELOPER_ATTRS, Record, RowingSe
 
 # Informative typical ranges from spec §8.1 — not encoding limits.
 _TYPICAL = {
-    "average_drive_force_n": (0.0, 2000.0),
-    "peak_drive_force_n": (0.0, 2000.0),
+    "average_drive_force": (0.0, 2000.0),
+    "peak_drive_force": (0.0, 2000.0),
     "drive_length_mm": (300.0, 1500.0),
     "stroke_rate": (10.0, 100.0),
 }

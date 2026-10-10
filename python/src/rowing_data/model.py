@@ -29,10 +29,8 @@ class Record:
     stroke_drive_time_ms: int | None = None
     drag_factor: int | None = None
     stroke_recovery_time_ms: int | None = None
-    average_drive_force_lbs: float | None = None
-    peak_drive_force_lbs: float | None = None
-    average_drive_force_n: float | None = None
-    peak_drive_force_n: float | None = None
+    average_drive_force: float | None = None
+    peak_drive_force: float | None = None
     average_boat_speed_mps: float | None = None
     workout_state: int | None = None
     stroke_work_j: int | None = None
@@ -82,10 +80,8 @@ RECORD_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
     (1, "stroke_drive_time_ms"),
     (2, "drag_factor"),
     (3, "stroke_recovery_time_ms"),
-    (4, "average_drive_force_lbs"),
-    (5, "peak_drive_force_lbs"),
-    (6, "average_drive_force_n"),
-    (7, "peak_drive_force_n"),
+    (6, "average_drive_force"),
+    (7, "peak_drive_force"),
     (8, "average_boat_speed_mps"),
     (9, "workout_state"),
     (19, "stroke_work_j"),

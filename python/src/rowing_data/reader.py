@@ -43,6 +43,8 @@ def read_fit(path: str | Path) -> RowingSession:
 
     strategy = RecordingStrategy.UNKNOWN
     start_time: datetime | None = None
+    slip_threshold_n: int | None = None
+    wash_threshold_n: int | None = None
     for message in messages:
         if message.name != "session":
             continue
@@ -52,6 +54,8 @@ def read_fit(path: str | Path) -> RowingSession:
         strategy, strategy_issue = _recording_strategy(message, our_fields)
         if strategy_issue is not None:
             issues.append(strategy_issue)
+        slip_threshold_n = _session_developer_int(message, our_fields, "SlipThreshold")
+        wash_threshold_n = _session_developer_int(message, our_fields, "WashThreshold")
         break
 
     laps = _laps(messages)
@@ -65,6 +69,8 @@ def read_fit(path: str | Path) -> RowingSession:
         recording_strategy=strategy,
         laps=tuple(laps),
         start_time=start_time,
+        slip_threshold_n=slip_threshold_n,
+        wash_threshold_n=wash_threshold_n,
         read_issues=tuple(issues),
     )
 
@@ -167,10 +173,6 @@ def _raw_scale(message) -> object:
     still meaningful.
     """
     field = message.get("scale")
-    if field is None or field.raw_value is None:
-        return None
-    if isinstance(field.raw_value, list | tuple):
-        return None
     return field.raw_value
 
 
@@ -178,6 +180,21 @@ def _units_match(file_units: object, registry_units: str) -> bool:
     if not isinstance(file_units, str):
         return False
     return file_units.strip() == registry_units
+
+
+def _session_developer_int(
+    message, our_fields: dict[str, FieldDef], name: str
+) -> int | None:
+    spec = our_fields.get(name)
+    if spec is None:
+        return None
+    field = message.get(name)
+    if field is None or field.raw_value is None:
+        return None
+    if isinstance(field.raw_value, list | tuple):
+        return None
+    decoded = decode(spec, int(field.raw_value))
+    return None if decoded is None else int(decoded)
 
 
 def _recording_strategy(

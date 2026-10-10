@@ -46,7 +46,6 @@ Proposals that leave the drafting to someone else tend to stall.
   meaning? If yes, say so plainly here. This is the section reviewers read first.
 - **Existing consumers** — what does a reader built against the current draft do
   with a file using this change?
-- **Compliance levels** — does this change what any level requires?
 - **Migration** — if this replaces something, how long do both coexist, and does
   the old field get deprecated rather than removed? (It does. IDs are never
   reused.)

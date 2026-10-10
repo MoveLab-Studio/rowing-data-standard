@@ -3,7 +3,7 @@
 > ### ⚠️ Draft — not ratified
 >
 > This document is a **working draft**. Nothing in it is final: field IDs, scales,
-> units, compliance levels and the conformance language itself are all open to
+> units and the conformance language itself are all open to
 > change until the governance group ratifies a version. Do not treat any part of
 > this text as a stable contract for shipping products yet.
 >
@@ -29,8 +29,8 @@
 > they stand.
 >
 > **Known inconsistencies are left in place, not silently corrected.** Several
-> parts of this text contradict each other — units, field ID ranges and the
-> compliance level definitions among them. They are raised on the issue tracker
+> parts of this text contradict each other — units and field ID ranges
+> among them. They are raised on the issue tracker
 > so each one is decided on the record, because a "fix" to a unit or a scale
 > changes what goes into the file.
 
@@ -72,7 +72,23 @@ All developer fields defined in this standard MUST use the **standard's applicat
 
 This UUID v5 is deterministically generated from DNS namespace with name "rowingdata" (`uuid.uuid5(uuid.NAMESPACE_DNS, 'rowingdata')`), ensuring consistency across implementations. The FIT SDK requires the application_id field to be a 16-byte array representation of this UUID.
 
-### 1.5 Conformance Language
+### 1.5 Protocol Version
+
+The protocol version identifies the encoding a file follows. It is separate from the version of this document: most revisions of the document clarify text or add optional fields and leave the protocol version unchanged.
+
+Producers MUST write the protocol version in the `application_version` field (UINT32) of the `DeveloperDataId` message that carries the standard's application ID.
+
+**Current protocol version:** `1`
+
+The protocol version is incremented only for a breaking change: one that changes the meaning of a field an existing file may contain. Adding a field is not a breaking change.
+
+Consumers:
+
+- MUST NOT reject a file because `application_version` is absent. Files written before this field was defined do not carry it.
+- SHOULD treat an absent `application_version` as a file following the field definitions that predate protocol version 1.
+- MAY warn when `application_version` is higher than the highest version they support, and SHOULD still read the fields they understand.
+
+### 1.6 Conformance Language
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 
@@ -80,7 +96,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ### 2.1 Overview
 
-Different device types generate FIT Record messages at different frequencies. Consumers MUST support both approaches:
+Different device types generate FIT Record messages at different frequencies. Consumers MUST support all three approaches:
 
 ### 2.2 Stroke-Boundary Recording
 
@@ -107,15 +123,29 @@ Different device types generate FIT Record messages at different frequencies. Co
 
 **Typical devices:** GPS-enabled sports watches, multi-sport fitness devices, smartphone applications with GPS tracking
 
-### 2.4 RecordingStrategy Metadata Field
+### 2.4 Time-Sampled Recording
+
+**Definition:** Record messages generated at a regular time interval, independent of stroke boundaries and GPS updates.
+
+**Characteristics:**
+- Records generated at a fixed rate chosen by the producer (for example 1 Hz or 10 Hz)
+- Several records MAY fall within one stroke cycle; a record MAY also span more than one stroke at low sample rates
+- The phase of the stroke at record time MAY be given by the **StrokeState** developer field (ID 96, §5.1)
+- Stroke-specific metrics describe the most recent completed stroke
+- CANNOT include in-stroke curve data (curves require stroke boundaries)
+
+**Typical devices:** Ergometer monitors and apps that log at a fixed rate, research and coaching data loggers
+
+### 2.5 RecordingStrategy Metadata Field
 
 To indicate the recording approach, producers MAY include the **RecordingStrategy** developer field (ID 10, UINT8) on the **Session message**.
 
 | Value | Name | Description |
 |-------|------|-------------|
-| 0 | Unknown | Recording strategy unspecified (consumers MUST handle both approaches) |
+| 0 | Unknown | Recording strategy unspecified (consumers MUST handle all approaches) |
 | 1 | StrokeBoundary | One Record per stroke cycle |
 | 2 | GPSUpdate | Records at GPS position updates |
+| 3 | TimeSampled | Records at a regular time interval |
 
 **Message Type:** Session (one value per file)
 
@@ -131,13 +161,13 @@ When omitted or zero, consumers MUST NOT assume any particular strategy.
 
 Consumers MUST:
 
-1. **Support both recording strategies** without requiring configuration
+1. **Support all recording strategies** without requiring configuration
 2. **Not assume 1:1 correspondence** between Record messages and strokes
 3. **Not interpolate stroke-specific developer fields** between records (DriveLength, StrokeDriveTime, Catch, Finish, oarlock angles, etc.) - these describe discrete stroke events
 4. **Detect stroke occurrences** by monitoring changes in the native `total_cycles` field:
    - When `total_cycles` changes between consecutive records, at least one stroke occurred
    - If change is >1, multiple strokes occurred but per-stroke data for intermediate strokes is unavailable
-5. **Calculate stroke rate** from the **StrokeRate** developer field (ID 93) when present, else from native `cadence` plus `fractional_cadence` when available, else from integer `cadence` alone — not from record message frequency
+5. **Calculate stroke rate** from native `cadence256` when present, else from integer `cadence` — not from record message frequency
 6. **Handle missing developer fields gracefully** (all developer fields are optional)
 
 ### 3.2 Recommended Requirements
@@ -162,15 +192,29 @@ Producers SHOULD use these native FIT fields for rowing data:
 |-----------|------|-------|-------|
 | timestamp | UINT32 | Record timestamp | Milliseconds since Garmin epoch (1989-12-31 UTC) |
 | distance | UINT32 | Cumulative distance | Meters, scale 100 |
-| cadence | UINT8 | Stroke rate (integer spm) | Strokes per minute; retain for backward compatibility |
-| fractional_cadence | UINT8 | Stroke rate fraction | Fractional part of cadence (scale 1/128 spm); SHOULD be written when fractional rate is known |
+| cadence | UINT8 | Stroke rate (integer spm) | Strokes per minute, **rounded** to the nearest integer (not truncated); MUST be written when rate is known, for consumers that do not read `cadence256` |
+| cadence256 | UINT16 | Stroke rate (fractional spm) | Strokes per minute, scale 256 (1/256 spm); SHOULD be written when fractional rate is known |
 | heart_rate | UINT8 | Heart rate | Beats per minute, 0-255 |
 | power | UINT16 | Average power | Watts, 0-65535 |
 | enhanced_speed | UINT32 | Boat speed | Meters per second (scale 1000) |
 | position_lat | SINT32 | Latitude | Semicircles |
 | position_long | SINT32 | Longitude | Semicircles |
 | total_cycles | UINT32 | Cumulative stroke count | MAY repeat (GPS-update) or increment by >1 |
-| cycle_length16 | UINT16 | Stroke distance | Distance per stroke cycle, scale 100, max 655m |
+| cycle_length16 | UINT16 | Stroke distance | Distance the boat travels during this stroke cycle, scale 100, max 655m. See notes |
+
+**Notes:**
+
+- **heart_rate**: Heart rate is written in the native `heart_rate` field on the same Record messages as the rowing data, whether it comes from the rowing device or from a separate sensor. It is not repeated as a developer field. When no heart rate sensor is connected, producers SHOULD omit the field rather than write 0. Session and Lap averages and maxima go in the native `avg_heart_rate` and `max_heart_rate` fields.
+- **cycle_length16**: The distance the boat (or, on an ergometer, the virtual boat) travels during one stroke cycle, catch to catch. It is not the cumulative distance travelled, which is `distance`, and not the travel of the handle, which is DriveLength (§5.1).
+
+### 4.1 Sessions, Laps and Intervals
+
+How a workout is divided into Session, Lap and Split messages follows the FIT activity file conventions, see the [FIT activity file documentation](https://developer.garmin.com/fit/file-types/activity/) and the [encoding cookbook](https://developer.garmin.com/fit/cookbook/encoding-activity-files/). This standard adds two rules for rowing:
+
+1. **Intervals are marked with intensity.** Producers SHOULD write each work and rest interval as its own Lap, and MUST set the native `intensity` field on every Lap they write (`active` for work, `rest` for rest; the full list is under WorkoutState in §5.1).
+2. **Active laps add up to moving time.** Rest and pauses MUST NOT be included in a Lap with `intensity=active`, so that a consumer gets the moving time by summing `total_timer_time` over the active Laps.
+
+A common convention for grouping laps into workouts and splits is expected in a later version.
 
 ## 5. Developer Field Specifications
 
@@ -182,21 +226,54 @@ Producers SHOULD use these native FIT fields for rowing data:
 | StrokeDriveTime | 1 | UINT16 | 1 | ms | Duration of drive phase | 300-600 ms |
 | DragFactor | 2 | UINT16 | 1 | | Resistance setting (ergometer) | Device-specific |
 | StrokeRecoveryTime | 3 | UINT16 | 1 | ms | Duration of recovery phase | 500-1500 ms |
-| AverageDriveForceLbs | 4 | UINT16 | 10 | lbs | Average force during drive (deprecated) | - |
-| PeakDriveForceLbs | 5 | UINT16 | 10 | lbs | Peak force during drive (deprecated) | - |
-| AverageDriveForceN | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
-| PeakDriveForceN | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
+| AverageDriveForce | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
+| PeakDriveForce | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
 | AverageBoatSpeed | 8 | UINT16 | 255 | m/s | Average boat speed during stroke | 3-6 m/s |
-| WorkoutState | 9 | UINT8 | 1 | | Rowing state indicator | See WorkoutState values |
+| WorkoutState | 9 | UINT8 | 1 | | Training intensity of the record | See WorkoutState values below |
 | StrokeWork | 19 | UINT16 | 1 | J | Work done over full stroke cycle | 100-500 J |
-| StrokeRate | 93 | UINT16 | 100 | spm | Per-stroke rate with 0.01 spm precision | 10-40 spm typical |
+| StrokeState | 96 | UINT8 | 1 | | Phase of the stroke at record time | See StrokeState values below |
 
 **Notes:**
 
 - **DriveLength**: For OTW rowing, projection of handle trajectory on longitudinal axis. For indoor, handle travel catch-to-finish. Stored in **millimeters** (scale 1, units mm) for 1 mm precision (v1.2; v1.1 used scale 100 with units m).
-- **Force fields**: Newtons (IDs 6-7) are RECOMMENDED. Pounds (IDs 4-5) retained for backward compatibility only.
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
-- **StrokeRate**: High-precision per-stroke rate. Native `cadence` (integer spm) MUST still be written for backward compatibility when rate is known. Producers SHOULD also write `fractional_cadence` on Record messages when fractional rate is known.
+- **Stroke rate** is carried by the native `cadence` and `cadence256` fields (§4), not by a developer field. Producers MUST NOT write native `fractional_cadence`: common platforms ignore it, and `cadence256` carries the same information.
+
+**WorkoutState values:**
+
+WorkoutState uses the values of the native FIT `intensity` enum, so a producer can copy them from the lap and a consumer can interpret them the same way.
+
+| Value | Name | Meaning |
+|-------|------|---------|
+| 0 | Active | Working |
+| 1 | Rest | Stationary; no rowing |
+| 2 | Warmup | Warm-up |
+| 3 | Cooldown | Cool-down |
+| 4 | Recovery | Light rowing between work intervals |
+| 5 | Interval | Work interval of a structured workout |
+| 6 | Other | None of the above |
+
+**WorkoutState rules:**
+
+- Producers SHOULD distinguish Rest from Recovery: during Recovery the athlete is still moving, and consumers SHOULD NOT hide data recorded during it.
+- When a Lap message carries native `intensity`, producers SHOULD write the same value in WorkoutState on the records within that lap. If they disagree, consumers MUST use the Lap `intensity`.
+- Values above 6 are reserved. Consumers SHOULD treat an unknown value as Other.
+
+**StrokeState values:**
+
+| Value | Name | Meaning |
+|-------|------|---------|
+| 0 | Unknown | Phase not determined |
+| 1 | Waiting | Not rowing; waiting for the first stroke or after stopping |
+| 2 | Drive | Drive phase, catch to finish |
+| 3 | Dwell | Pause at the finish, before the recovery starts |
+| 4 | Recovery | Recovery phase, finish back to catch |
+
+**StrokeState rules:**
+
+- StrokeState is meaningful only when `RecordingStrategy=TimeSampled`. Producers SHOULD NOT write it with other recording strategies, where each record describes a whole stroke or an arbitrary moment.
+- Producers that do not distinguish Dwell MAY report it as Recovery.
+- Values above 4 are reserved. Consumers SHOULD treat an unknown value as Unknown.
 
 ### 5.2 Oarlock Metrics (Single, Record-Level)
 
@@ -234,8 +311,8 @@ When both port and starboard oarlocks are present, per-side metrics MAY be inclu
 | WashStarboard | 207 | SINT16 | 10 | deg | Starboard |
 | PeakForceAnglePort | 208 | SINT16 | 10 | deg | Port |
 | PeakForceAngleStarboard | 209 | SINT16 | 10 | deg | Starboard |
-| EffectiveLengthPort | 210 | UINT16 | 100 | m | Port |
-| EffectiveLengthStarboard | 211 | UINT16 | 100 | m | Starboard |
+| EffectiveLengthPort | 210 | UINT16 | 1 | mm | Port |
+| EffectiveLengthStarboard | 211 | UINT16 | 1 | mm | Starboard |
 
 **Per-side field rules:**
 
@@ -244,19 +321,38 @@ When both port and starboard oarlocks are present, per-side metrics MAY be inclu
 - When only one side is available, summary fields SHOULD contain that side's value
 - Consumers implementing only partial support MAY ignore per-side fields and use summary fields
 
+### 5.4 Oarlock Settings (Session-Level)
+
+The force thresholds an oarlock system uses to determine Slip and Wash, and so the effective part of the stroke, are device settings. They do not change during a session and are written once, on the **Session message**.
+
+| Field Name | ID | Base Type | Scale | Units | Definition | Typical Range |
+|------------|----|-----------| ------|-------|------------|---------------|
+| SlipThreshold | 94 | UINT16 | 1 | N | Handle force above which the blade counts as entered; Slip (ID 13) is measured from the catch to this point | 50-150 N |
+| WashThreshold | 95 | UINT16 | 1 | N | Handle force below which the blade counts as exited; Wash (ID 14) is measured from this point to the finish | 50-150 N |
+
+**Rules:**
+
+- Producers SHOULD write these fields when they write Slip, Wash or EffectiveLength, so a consumer can tell whether values from different systems are comparable
+- When absent, consumers MUST NOT assume a threshold
+
 ## 6. In-Stroke Curve Data
 
 ### 6.1 Overview
 
-In-stroke curve data provides high-resolution force, acceleration, or angle measurements throughout a stroke cycle. This data enables detailed stroke analysis and technique visualization.
+In-stroke curve data describes how a quantity develops through a single stroke. This standard puts exactly **one** curve in the FIT file, the **handle force curve** (§6.4). Every platform can present it meaningfully, whatever equipment recorded it.
+
+All other curves, such as boat acceleration, seat position and oar angular velocity, and any curve at a higher resolution than §6.5 allows, belong in the companion JSON file (§6.6). Their meaning depends on the exact equipment that measured them, and they would quickly grow the FIT file past what is practical to exchange.
 
 **Constraint:** In-stroke curve data MUST only appear when `RecordingStrategy=StrokeBoundary` (or Unknown with stroke-boundary semantics), as curves require stroke boundaries for interpretation.
 
 ### 6.2 Field ID Allocation
 
-- **90-92**: Axis metadata (per-Record)
-- **20-59**: Curve summary statistics (dynamic, per-curve-type)
-- **60-255**: Curve arrays (dynamic, per-curve-type)
+| ID | Field |
+|----|-------|
+| 60 | HandleForceCurve (§6.4) |
+| 90-92 | Axis metadata (§6.3) |
+
+IDs 20-59 and 61-89 are reserved for future curve data. Curve field IDs are fixed; producers MUST NOT allocate them dynamically.
 
 ### 6.3 Axis Metadata Fields (Record-Level)
 
@@ -272,7 +368,7 @@ These fields define the X-axis interpretation for curve data on each Record:
 
 | Value | Name | InstrokeSampleInterval Meaning |
 |-------|------|--------------------------------|
-| 0 | UNKNOWN | Not specified (shape-only curves) |
+| 0 | UNKNOWN | Not specified. Producers MUST NOT write this value (see rules) |
 | 1 | TIME_UNIFORM_MS | Milliseconds between samples |
 | 2 | HANDLE_DISTANCE_UNIFORM_M | Millimeters between uniform samples along handle travel |
 | 3 | OAR_ANGLE_UNIFORM_DEG | Degrees between samples (scale as documented) |
@@ -281,81 +377,36 @@ These fields define the X-axis interpretation for curve data on each Record:
 **Rules:**
 
 - Axis metadata fields MUST appear together on each Record containing curve data
+- Producers MUST declare the X-axis explicitly: InstrokeAbscissaType MUST NOT be 0 (UNKNOWN). Consumers that encounter 0 in older files SHOULD treat the curve as shape-only, for pattern analysis and not absolute plotting
 - For Type=TIME_UNIFORM_MS with known drive time: `InstrokeSampleInterval = drive_time_ms / (point_count - 1)`
-- For Type=HANDLE_DISTANCE_UNIFORM_M with known drive length, `InstrokeSampleInterval = DriveLength / (point_count - 1)`
+- For Type=HANDLE_DISTANCE_UNIFORM_M with known drive length: `InstrokeSampleInterval = DriveLength / (point_count - 1)`; sample index `k` maps to handle position `k × InstrokeSampleInterval` from the catch
 - For Type=OAR_ANGLE_UNIFORM_DEG: Domain is [Catch, Finish] angles (from fields 11-12)
-- Type=UNKNOWN indicates shape-only data (for pattern analysis, not absolute plotting)
 - Producers SHOULD strive for consistency between axis metadata and stroke scalars, but consumers SHOULD NOT enforce strict validation
 
-### 6.4 Standard Curve Types
+### 6.4 HandleForceCurve
 
-Recommended curve type names and encoding (Y-axis scale in developer field description):
+| Field Name | ID | Base Type | Scale | Units | Definition |
+|------------|----|-----------| ------|-------|------------|
+| HandleForceCurve | 60 | UINT16 array | 10 | N | Force on the handle through the drive, sampled uniformly along the declared abscissa |
 
-| Curve Name | Typical Data | Y Units | Y Scale (UINT16) | Recommended Abscissa |
-|------------|--------------|---------|------------------|----------------------|
-| HandleForceCurve | Handle force over stroke | N | 10 (0.1 N) | HANDLE_DISTANCE_UNIFORM_M (erg) or TIME_UNIFORM_MS (OTW) |
-| BoatAcceleratorCurve | Boat acceleration | m/s² | 100 (0.01 m/s²) | TIME_UNIFORM_MS |
-| OarAngleVelocityCurve | Angular velocity of oar | deg/s | 10 (0.1 deg/s) | TIME_UNIFORM_MS or OAR_ANGLE_UNIFORM_DEG |
-| SeatCurve | Seat position | m | 255 (~4 mm) | HANDLE_DISTANCE_UNIFORM_M or TIME_UNIFORM_MS |
+**Recommended abscissa:** HANDLE_DISTANCE_UNIFORM_M on an ergometer, TIME_UNIFORM_MS on the water.
 
-Curve samples are **uniformly spaced** along the declared abscissa (fields 90-92). Non-uniform source data MUST be resampled before export or stored in a companion JSON file.
+Curve samples are **uniformly spaced** along the declared abscissa (fields 90-92). Non-uniform source data MUST be resampled before export. The unresampled data MAY additionally be stored in the companion JSON file.
+
+The curve is produced on a best-effort basis: a producer writes the force curve its equipment measures, at the resolution it can, within the limits of §6.5.
 
 ### 6.5 Curve Array Format
 
 Curve data MUST be encoded as **UINT16** arrays (developer fields with array size > 1):
 
 - **Maximum points per curve:** 127 (FIT limit: 255 bytes / 2 bytes per UINT16)
-- **Field ID allocation:** Start at 60, increment per curve type
 - **Encoding:** Unsigned 16-bit integers in range [0, 65535]
-- **Data representation:** Values are clipped to [0, 65535] range; negative values not supported
-- **Scale factor:** Declared per curve type in developer field description (see §6.4). Values are clipped to [0, 65535] after scaling.
+- **Data representation:** Handle force is non-negative; negative measured values MUST be written as 0
+- **Scale factor:** As declared in §6.4 and in the developer field description. Values are clipped to [0, 65535] after scaling.
 
-**Note on signed data:** FIT SDK developer fields with arrays only reliably support UINT16 base type. For force curves and other rowing metrics, values are naturally non-negative. If future curve types require negative values, implement offset transformation (e.g., add 32768) and document in field description.
+### 6.6 Companion Files
 
-### 6.6 Curve Summary Statistics
-
-As an alternative or supplement to full curves, summary statistics MAY be provided:
-
-- **Field ID allocation:** Start at 20, increment per curve and metric
-- **Metrics:** q1, q2, q3, q4 (quartile variations), diff (change), maxpos, minpos (normalized positions)
-
-### 6.7 Companion Files
-
-For curves exceeding 127 points, producers MAY use companion JSON files:
-
-- **Filename:** Same basename as FIT file with `.instroke.json` extension
-- **Format:** JSON object with curve names as keys, arrays of per-stroke samples as values
-- **Metadata:** Include `_rowingdata_instroke` object with version, abscissa type, point counts
-
-## 7. Compliance Levels
-
-Implementers MAY choose compliance levels based on their capabilities:
-
-### Level 1: Minimal
-
-- Native FIT fields only
-- `RecordingStrategy` on Session (recommended)
-- Supports at least one recording strategy
-
-### Level 2: Standard
-
-- Level 1 requirements
-- Core rowing metrics (IDs 0-9, 19)
-- Handles missing developer fields gracefully
-
-### Level 3: Full
-
-- Level 2 requirements
-- Oarlock metrics (IDs 11-18)
-- In-stroke axis metadata (IDs 90-92)
-- At least one in-stroke curve type
-
-### Level 4: Advanced
-
-- Level 3 requirements
-- Dual oarlock per-side metrics (IDs 200-211)
-- Multiple in-stroke curve types
-- Curve summary statistics
+Data that does not fit the FIT file MAY be shipped in a companion `.json` file. This standard does not define its contents or structure; that is up to the producer. The companion file is optional: a FIT file MUST be complete and conforming without it, and consumers MAY ignore it.
 
 ## 8. Data Quality and Validation
 
@@ -390,36 +441,18 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 
 ### 9.1 Reserved ID Ranges
 
+A developer field number is a single byte (`field_definition_number`, UINT8), and 255 is the FIT invalid value for that type. Field IDs therefore range from 0 to 254. This is a hard limit of the FIT format, not an allocation choice of this standard.
+
 | Range | Purpose | Status |
 |-------|---------|--------|
 | 0-19 | Core rowing metrics | Assigned |
-| 20-59 | In-stroke summaries | Dynamic allocation |
-| 60-89 | In-stroke curve arrays | Dynamic allocation |
+| 20-59 | Reserved for future curve data | Available |
+| 60 | HandleForceCurve | Assigned |
+| 61-89 | Reserved for future curve data | Available |
 | 90-92 | In-stroke axis metadata | Assigned |
-| 93-199 | Extended standard fields | StrokeRate (93) assigned; remainder available |
+| 93-199 | Extended standard fields | SlipThreshold (94), WashThreshold (95) and StrokeState (96) assigned; remainder available |
 | 200-211 | Dual oarlock per-side | Assigned |
-| 212-255 | Reserved for future extensions | Available |
-
-### 9.2 Deprecated Fields
-
-| Field ID | Name | Status | Replacement |
-|----------|------|--------|-------------|
-| 4 | AverageDriveForceLbs | Deprecated | AverageDriveForceN (ID 6) |
-| 5 | PeakDriveForceLbs | Deprecated | PeakDriveForceN (ID 7) |
-
-Producers SHOULD use Newtons for new implementations. Consumers MUST continue to support pounds for backward compatibility.
-
-## 10. Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 0.1 | 2026-08-31 | Renumbered from 1.2 on adoption by the governance group, to stop a `1.x` number implying a ratified standard. No technical change. See the status banner at the top of this document. |
-| 1.2 | 2026-08-03 | Precision upgrades: length fields in mm (DriveLength, PeakForcePositionAbs, EffectiveLength); AverageBoatSpeed scale 255; StrokeRate developer field (ID 93); fractional_cadence native field; force-curve Y-scale and abscissa registry; §8.1 value-range guidance |
-| 1.1 | 2026-05-14 | FIT SDK compliance updates: Application ID changed to 16-byte UUID (89e86158-6d47-5c98-9d46-7d29437f27b9); Curve arrays changed from SINT16 to UINT16 for developer field compatibility |
-| 1.0 | 2026-05-13 | Initial standard release |
-
-Versions **1.0 to 1.2** predate this repository and its governance group. They
-are retained in this table because existing files and implementations cite them.
+| 212-254 | Reserved for future extensions | Available |
 
 ## Appendix A: Terminology
 

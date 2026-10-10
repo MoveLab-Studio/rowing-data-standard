@@ -15,7 +15,6 @@ it is provisional and open to change:
 |---|---|
 | The specification text | **Draft v0.1** — not ratified |
 | Field IDs, scales and units | Proposed; may be renumbered or redefined |
-| Compliance levels | Proposed; the tier boundaries are still under discussion |
 | Governance | **Undecided** — a small named editorial team, an open-source project, or open participation with named editors. The group's first decision |
 | Licensing | **Undecided** — no licence is granted yet, see [Licensing](#licensing) |
 | Where this repository ultimately lives | In progress — RITA adoption under active discussion, see [Hosting](#hosting-and-neutrality) |
@@ -40,9 +39,9 @@ statement here should be read as an endorsement on behalf of any organisation.
   app writes when a session is finished — distance, stroke metrics, oarlock
   angles, in-stroke force curves. Everything a consumer needs to reconstruct and
   analyse a completed row.
-- **Tiered, so partial support is still useful.** Four compliance levels let a
-  simple GPS watch and an instrumented racing shell both claim conformance at
-  the depth they actually measure.
+- **Partial support is still useful.** Producers write the fields they actually
+  measure, so a simple GPS watch and an instrumented racing shell can both use
+  it.
 
 ## What it is **not**
 
@@ -59,11 +58,11 @@ statement here should be read as an endorsement on behalf of any organisation.
 spec/FIT_STANDARD.md      The specification draft — the actual deliverable
 registry/field-ids.md     Registry of every allocated developer field ID
 proposals/                Substantive change proposals, one file each
-python/                   Draft v0.1 Python library (Levels 1–2 FIT read/write)
+python/                   Draft v0.1 Python library (FIT read/write)
 ```
 
 A small Python package lives in [`python/`](python/README.md). It implements
-**Draft v0.1** Levels 1–2: native FIT fields, core developer fields 0–9 and 19,
+**Draft v0.1**: native FIT fields, core developer fields 0–9 and 19,
 StrokeRate 93, and Session RecordingStrategy 10. It is not a certified or
 ratified implementation, and it does not implement oarlock, dual-oarlock, or
 in-stroke curves. Install with `pip install -e "./python[dev]"` (Python 3.11+).

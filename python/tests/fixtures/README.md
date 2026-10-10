@@ -16,7 +16,7 @@ py -3.12 tests/generate_fixtures.py
 
 `rowingdata` documents `testdata/rowingdata_standard_example.fit` as a multi-lap
 reference with in-stroke curves. That file is not copied here: it is not present
-in the local `rowingdata` checkout, and it contains Level 3 curve fields this
+in the local `rowingdata` checkout, and it contains in-stroke curve fields this
 package does not yet model. Interop tests look for it next to this repo
 (`../rowingdata/testdata/rowingdata_standard_example.fit`) and skip if missing.
 

@@ -58,7 +58,7 @@ def test_rowingdata_golden_file_if_present() -> None:
         RecordingStrategy.GPS_UPDATE,
     }
     assert len(session.records) > 0
-    # Level 3 curve fields are ignored; core metrics should still parse.
+    # In-stroke curve fields are ignored; core metrics should still parse.
     assert any(record.total_cycles is not None for record in session.records) or any(
         record.stroke_rate is not None or record.cadence is not None
         for record in session.records

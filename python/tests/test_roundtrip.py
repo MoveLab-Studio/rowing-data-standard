@@ -170,3 +170,42 @@ def _assert_record_roundtrip(got: Record, want: Record) -> None:
         assert got.enhanced_speed_mps == pytest.approx(
             want.enhanced_speed_mps, abs=0.001
         )
+
+
+def test_stroke_rate_precedence_matches_between_writer_and_validator(
+    tmp_path: Path,
+) -> None:
+    original = RowingSession(
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                stroke_rate=30.0,
+                cadence256=28.5,
+            ),
+        )
+    )
+    path = tmp_path / "precedence.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.records[0].cadence256 == pytest.approx(28.5)
+    assert original.records[0].resolved_stroke_rate() == pytest.approx(28.5)
+
+
+@pytest.mark.parametrize("rate", [5.0, 120.0])
+def test_validate_warns_on_stroke_rate_outside_typical_range(rate: float) -> None:
+    session = RowingSession(
+        records=(Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC), stroke_rate=rate),),
+    )
+    issues = validate(session)
+    assert any(
+        i.code == "typical_range" and "stroke_rate" in i.message for i in issues
+    )
+
+
+def test_validate_accepts_typical_stroke_rate() -> None:
+    session = RowingSession(
+        records=(
+            Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC), cadence256=24.0),
+        ),
+    )
+    assert validate(session) == []

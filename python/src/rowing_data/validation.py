@@ -18,8 +18,8 @@ _TYPICAL = {
     "average_drive_force": (0.0, 2000.0),
     "peak_drive_force": (0.0, 2000.0),
     "drive_length_mm": (300.0, 1500.0),
-    "stroke_rate": (10.0, 100.0),
 }
+_STROKE_RATE_RANGE = (10.0, 100.0)
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,6 +95,17 @@ def _record_issues(record: Record, index: int, session: RowingSession) -> list[I
         )
 
     rate = record.resolved_stroke_rate()
+    if rate is not None:
+        lo, hi = _STROKE_RATE_RANGE
+        if rate < lo or rate > hi:
+            issues.append(
+                Issue(
+                    "warning",
+                    "typical_range",
+                    f"stroke_rate={rate!r} is outside typical [{lo}, {hi}]",
+                    index,
+                )
+            )
     drive = record.stroke_drive_time_ms
     recovery = record.stroke_recovery_time_ms
     if rate and rate > 0 and drive is not None and recovery is not None:

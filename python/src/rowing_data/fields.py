@@ -11,10 +11,10 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from .constants import (
+    CADENCE256_SCALE,
     CYCLE_LENGTH16_SCALE,
     DISTANCE_SCALE,
     ENHANCED_SPEED_SCALE,
-    FRACTIONAL_CADENCE_SCALE,
 )
 
 
@@ -122,7 +122,6 @@ DEVELOPER_FIELDS: tuple[FieldDef, ...] = (
     _dev(94, "SlipThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N"),
     _dev(95, "WashThreshold", MessageType.SESSION, BaseType.UINT16, 1, "N"),
     _dev(19, "StrokeWork", MessageType.RECORD, BaseType.UINT16, 1, "J"),
-    _dev(93, "StrokeRate", MessageType.RECORD, BaseType.UINT16, 100, "spm"),
     _dev(96, "StrokeState", MessageType.RECORD, BaseType.UINT8, 1, ""),
 )
 
@@ -137,11 +136,11 @@ NATIVE_FIELDS: tuple[FieldDef, ...] = (
     _native("distance", BaseType.UINT32, DISTANCE_SCALE, "m"),
     _native("cadence", BaseType.UINT8, 1, "spm"),
     _native(
-        "fractional_cadence",
-        BaseType.UINT8,
-        FRACTIONAL_CADENCE_SCALE,
+        "cadence256",
+        BaseType.UINT16,
+        CADENCE256_SCALE,
         "spm",
-        notes="Fractional part of cadence; physical = raw / 128.",
+        notes="Fractional stroke rate; physical = raw / 256. Native record field 52.",
     ),
     _native("heart_rate", BaseType.UINT8, 1, "bpm"),
     _native("power", BaseType.UINT16, 1, "W"),

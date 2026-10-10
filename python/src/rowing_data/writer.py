@@ -30,6 +30,7 @@ from fit_tool.profile.profile_type import (
 from .codec import encode
 from .constants import (
     APPLICATION_ID,
+    CADENCE256_SCALE,
     CYCLE_LENGTH16_SCALE,
     PROTOCOL_VERSION,
     RecordingStrategy,
@@ -259,13 +260,13 @@ def _record_message(
     rec = RecordMessage(developer_fields=dev_fields) if dev_fields else RecordMessage()
     rec.timestamp = _unix_ms(record.timestamp)
     _set_native_fields(rec, record)
-    cadence, fraction = _native_cadence(record)
+    cadence, cadence256 = _native_cadence(record)
     if cadence is not None:
         encode(field_by_name("cadence"), cadence)
         rec.cadence = cadence
-    if fraction is not None:
-        encode(field_by_name("fractional_cadence"), fraction)
-        rec.fractional_cadence = fraction
+    if cadence256 is not None:
+        encode(field_by_name("cadence256"), cadence256)
+        rec.cadence256 = cadence256
     return rec
 
 
@@ -320,10 +321,11 @@ def _attr_for_field_id(field_id: int | None) -> str:
 
 
 def _native_cadence(record: Record) -> tuple[int | None, float | None]:
-    """Integer cadence plus fractional part when a rate is known."""
-    if record.stroke_rate is not None:
-        integer, fraction = native_cadence_parts(record.stroke_rate)
-        return integer, fraction
-    if record.cadence is None and record.fractional_cadence is None:
+    """Rounded integer cadence and physical cadence256 when a rate is known."""
+    rate = record.cadence256 if record.cadence256 is not None else record.stroke_rate
+    if rate is not None:
+        integer, raw = native_cadence_parts(rate)
+        return integer, raw / CADENCE256_SCALE
+    if record.cadence is None:
         return None, None
-    return record.cadence, record.fractional_cadence
+    return record.cadence, None

@@ -1,4 +1,4 @@
-"""Shared Level 1–2 sample sessions for tests and generated fixtures."""
+"""Shared sample sessions for tests and generated fixtures."""
 
 from __future__ import annotations
 
@@ -34,8 +34,8 @@ def stroke_boundary_session() -> RowingSession:
                 stroke_drive_time_ms=450,
                 stroke_recovery_time_ms=1650,
                 cycle_length_m=8.5,
-                average_drive_force_n=412.3,
-                peak_drive_force_n=780.0,
+                average_drive_force=412.3,
+                peak_drive_force=780.0,
                 stroke_work_j=250,
                 heart_rate=140,
                 power=210,
@@ -49,8 +49,8 @@ def stroke_boundary_session() -> RowingSession:
                 drive_length_mm=1410,
                 stroke_drive_time_ms=440,
                 stroke_recovery_time_ms=1630,
-                average_drive_force_n=400.0,
-                peak_drive_force_n=760.0,
+                average_drive_force=400.0,
+                peak_drive_force=760.0,
                 stroke_work_j=240,
                 heart_rate=142,
                 power=215,
@@ -64,8 +64,8 @@ def stroke_boundary_session() -> RowingSession:
                 drive_length_mm=1415,
                 stroke_drive_time_ms=455,
                 stroke_recovery_time_ms=1640,
-                average_drive_force_n=405.0,
-                peak_drive_force_n=770.0,
+                average_drive_force=405.0,
+                peak_drive_force=770.0,
                 stroke_work_j=245,
                 heart_rate=141,
                 power=212,

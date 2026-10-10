@@ -8,8 +8,9 @@
 > this text as a stable contract for shipping products yet.
 >
 > **Authorship.** The technical content of this draft was written by Sander
-> Roosendaal and previously released as v1.0 to v1.2. It is carried over here
-> unchanged apart from this banner and the version number.
+> Roosendaal and previously released as v1.0 to v1.2. It was adopted here from
+> v1.2 and has since been revised through issues and pull requests in this
+> repository.
 >
 > **This repository is the sole home of the standard.** The text, the issue
 > tracker, proposals and implementation work all live here. Earlier copies
@@ -18,8 +19,8 @@
 > **Why 0.1 and not 1.2.** The text was renumbered on adoption by the governance
 > group. A `1.x` number implies a ratified standard that an implementer can build
 > against, and nothing here has been ratified — so the version was reset to a
-> `0.x` series that states what this actually is. **No technical content changed
-> in the renumbering.** What number the first ratified release carries is still
+> `0.x` series that states what this actually is. What number the first
+> ratified release carries is still
 > open — note that `1.0` to `1.2` are already taken by the earlier lineage below,
 > so that needs settling before the first tag.
 >
@@ -27,17 +28,10 @@
 > earlier releases. They really were published under those numbers and are cited
 > by existing files and implementations, so the references are left exactly as
 > they stand.
->
-> **Known inconsistencies are left in place, not silently corrected.** Several
-> parts of this text contradict each other — units and field ID ranges
-> among them. They are raised on the issue tracker
-> so each one is decided on the record, because a "fix" to a unit or a scale
-> changes what goes into the file.
 
 
 **Version:** 0.1 — draft, not ratified  
-**Date:** August 31, 2026  
-**Supersedes:** v1.2 (3 August 2026) — renumbered, same technical content  
+**Based on:** v1.2 (3 August 2026)  
 **Application ID:** `89e86158-6d47-5c98-9d46-7d29437f27b9` (UUID v5 from DNS:rowingdata)
 
 ## 1. Introduction

@@ -5,9 +5,9 @@ repository exists to support editing it.
 
 ## Status
 
-**Draft v0.1, not ratified.** The technical content is the v1.2 text, renumbered
-to `0.1` on adoption here so that the version number stops implying a ratified
-standard. Nothing technical changed in the renumbering.
+**Draft v0.1, not ratified.** The text started as v1.2, renumbered to `0.1` on
+adoption here so that the version number stops implying a ratified standard,
+and has been revised here since.
 
 Version numbers `1.0` to `1.2` appearing inside the document refer to releases
 that predate this repository, not to anything tagged here.
@@ -32,9 +32,9 @@ Implementations currently hand-transcribe the field tables from the prose.
 
 Generating a schema from this document — or making the schema normative and the
 prose descriptive — is worth considering before the first release. Two hand-kept
-copies of the same field table will drift, and this draft already shows it: v1.2
+copies of the same field table will drift, and this draft has shown it: v1.2
 moved `EffectiveLength` (16) to millimetres and left the per-side pair 210/211 in
-metres.
+metres until it was corrected here.
 
 ## Editing
 

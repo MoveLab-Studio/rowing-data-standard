@@ -22,13 +22,14 @@ from fit_tool.profile.profile_type import (
     Event,
     EventType,
     FileType,
+    Intensity,
     Manufacturer,
     Sport,
     SubSport,
 )
 
 from .codec import encode
-from .constants import APPLICATION_ID, CYCLE_LENGTH16_SCALE
+from .constants import APPLICATION_ID, CYCLE_LENGTH16_SCALE, WorkoutState
 from .fields import BaseType, FieldDef, field_by_id, field_by_name
 from .model import RECORD_DEVELOPER_ATTRS, Record, RowingSession
 from .strokes import native_cadence_parts
@@ -118,6 +119,9 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
                 lap_msg.total_timer_time = lap.total_elapsed_s
             if lap.total_distance_m is not None:
                 lap_msg.total_distance = lap.total_distance_m
+            lap_msg.intensity = Intensity(
+                WorkoutState.ACTIVE if lap.intensity is None else lap.intensity
+            )
             lap_msg.sport = Sport.ROWING
             builder.add(lap_msg)
     else:
@@ -128,6 +132,7 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
         lap_msg.total_elapsed_time = elapsed_s
         lap_msg.total_timer_time = elapsed_s
         lap_msg.total_distance = total_distance
+        lap_msg.intensity = Intensity.ACTIVE
         lap_msg.sport = Sport.ROWING
         builder.add(lap_msg)
 

@@ -11,7 +11,7 @@ from fitparse import FitFile
 from rowing_data import APPLICATION_ID, APPLICATION_UUID, PROTOCOL_VERSION, write_fit
 from rowing_data.codec import CodecError
 from rowing_data.constants import RecordingStrategy
-from rowing_data.model import Record, RowingSession
+from rowing_data.model import Lap, Record, RowingSession
 
 
 def _ts(second: int) -> datetime:
@@ -108,6 +108,17 @@ def test_writer_application_id_and_recording_strategy(tmp_path: Path) -> None:
     names = {field.name for field in second}
     assert "StrokeWork" not in names
     assert second.get_value("distance") == pytest.approx(10.5)
+
+
+def test_writer_requires_intensity_on_caller_laps(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="intensity"):
+        write_fit(
+            RowingSession(
+                records=(Record(timestamp=_ts(0)),),
+                laps=(Lap(start_time=_ts(0)),),
+            ),
+            tmp_path / "no-intensity.fit",
+        )
 
 
 def test_writer_rejects_values_that_overflow_fit_types(tmp_path: Path) -> None:

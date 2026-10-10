@@ -22,6 +22,7 @@ from fit_tool.profile.profile_type import (
     Event,
     EventType,
     FileType,
+    Intensity,
     Manufacturer,
     Sport,
     SubSport,
@@ -33,6 +34,7 @@ from .constants import (
     CYCLE_LENGTH16_SCALE,
     PROTOCOL_VERSION,
     RecordingStrategy,
+    WorkoutState,
 )
 from .fields import BaseType, FieldDef, field_by_id, field_by_name
 from .model import (
@@ -133,6 +135,7 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
             if lap.total_distance_m is not None:
                 lap_msg.total_distance = lap.total_distance_m
             lap_msg.sport = Sport.ROWING
+            lap_msg.intensity = _fit_intensity(lap.intensity)
             builder.add(lap_msg)
     else:
         lap_msg = LapMessage()
@@ -143,6 +146,7 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
         lap_msg.total_timer_time = elapsed_s
         lap_msg.total_distance = total_distance
         lap_msg.sport = Sport.ROWING
+        lap_msg.intensity = Intensity.ACTIVE
         builder.add(lap_msg)
 
     for record in session.records:
@@ -155,6 +159,12 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
     builder.add(event_stop)
 
     builder.build().to_file(str(path))
+
+
+def _fit_intensity(intensity: WorkoutState | None) -> Intensity:
+    if intensity is None:
+        raise ValueError("every lap must set intensity")
+    return Intensity(int(intensity))
 
 
 def _unix_ms(moment: datetime) -> int:

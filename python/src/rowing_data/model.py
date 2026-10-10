@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from .constants import RecordingStrategy, StrokeState
+from .constants import RecordingStrategy, StrokeState, WorkoutState
 from .strokes import resolve_stroke_rate, stroke_counts
 
 
@@ -32,7 +32,7 @@ class Record:
     average_drive_force: float | None = None
     peak_drive_force: float | None = None
     average_boat_speed_mps: float | None = None
-    workout_state: int | None = None
+    workout_state: WorkoutState | None = None
     stroke_work_j: int | None = None
     stroke_rate: float | None = None
     stroke_state: StrokeState | None = None
@@ -45,12 +45,19 @@ class Record:
             fractional_cadence=self.fractional_cadence,
         )
 
+    def resolved_workout_state(self, lap: Lap | None) -> WorkoutState | None:
+        """Lap intensity wins when the lap carries one."""
+        if lap is not None and lap.intensity is not None:
+            return lap.intensity
+        return self.workout_state
+
 
 @dataclass(frozen=True, slots=True)
 class Lap:
     start_time: datetime
     total_elapsed_s: float | None = None
     total_distance_m: float | None = None
+    intensity: WorkoutState | None = None
 
 
 @dataclass(frozen=True, slots=True)

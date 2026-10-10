@@ -1,4 +1,4 @@
-"""Conformance checks for a RowingSession (Draft v0.1, Levels 1–2).
+"""Conformance checks for a RowingSession (Draft v0.1, core fields).
 
 Hard errors are type-limit violations and an unknown RecordingStrategy value.
 Typical-range and timing consistency checks are warnings only (§8).
@@ -9,13 +9,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .codec import CodecError, encode
+from .constants import RecordingStrategy
 from .fields import field_by_id, field_by_name
 from .model import NATIVE_RECORD_ATTRS, RECORD_DEVELOPER_ATTRS, Record, RowingSession
 
 # Informative typical ranges from spec §8.1 — not encoding limits.
 _TYPICAL = {
-    "average_drive_force_n": (0.0, 2000.0),
-    "peak_drive_force_n": (0.0, 2000.0),
+    "average_drive_force": (0.0, 2000.0),
+    "peak_drive_force": (0.0, 2000.0),
     "drive_length_mm": (300.0, 1500.0),
     "stroke_rate": (10.0, 100.0),
 }
@@ -82,6 +83,29 @@ def _record_issues(record: Record, index: int, session: RowingSession) -> list[I
                 "warning",
                 "workout_state",
                 "WorkoutState disagrees with lap intensity; the lap wins",
+                index,
+            )
+        )
+
+    if (
+        record.stroke_state is not None
+        and session.recording_strategy is not RecordingStrategy.TIME_SAMPLED
+    ):
+        issues.append(
+            Issue(
+                "warning",
+                "stroke_state",
+                "StrokeState is only meaningful when RecordingStrategy is TimeSampled",
+                index,
+            )
+        )
+
+    if record.heart_rate == 0:
+        issues.append(
+            Issue(
+                "warning",
+                "heart_rate",
+                "heart_rate 0 is omitted; leave the field out when there is no sensor",
                 index,
             )
         )

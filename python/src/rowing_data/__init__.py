@@ -4,7 +4,9 @@ from .codec import CodecError, decode, encode
 from .constants import (
     APPLICATION_ID,
     APPLICATION_UUID,
+    PROTOCOL_VERSION,
     STANDARD_VERSION,
+    StrokeState,
     WorkoutState,
 )
 from .fields import (
@@ -28,9 +30,11 @@ __all__ = [
     "Issue",
     "Lap",
     "NATIVE_FIELDS",
+    "PROTOCOL_VERSION",
     "Record",
     "RowingSession",
     "STANDARD_VERSION",
+    "StrokeState",
     "WorkoutState",
     "decode",
     "encode",

@@ -82,6 +82,13 @@ def test_developer_field_ids_are_unique() -> None:
     assert len(ids) == len(set(ids))
 
 
+def test_developer_field_ids_stop_at_254() -> None:
+    """field_definition_number is UINT8; 255 is the FIT invalid value."""
+    for field in DEVELOPER_FIELDS:
+        assert field.field_id is not None
+        assert 0 <= field.field_id <= 254
+
+
 def test_field_lookup() -> None:
     assert field_by_id(93).name == "StrokeRate"
     assert field_by_name("DriveLength").field_id == 0

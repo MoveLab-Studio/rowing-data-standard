@@ -10,9 +10,11 @@ shipping products.
 
 ## Scope
 
-Implements Draft v0.1 **§4 native FIT fields**, **§5.1 core metrics** (IDs 0–3,
-6–9, and 19, and **StrokeRate 93**), and Session **RecordingStrategy** (ID 10), under
-application UUID `89e86158-6d47-5c98-9d46-7d29437f27b9`.
+Implements Draft v0.1 **§4 native FIT fields**, **§5.1 core metrics** (IDs 0–9,
+19, and **StrokeRate 93**), and Session **RecordingStrategy** (ID 10), under
+application UUID `89e86158-6d47-5c98-9d46-7d29437f27b9`. Producers write
+protocol version 1 in `DeveloperDataId.application_version`. A file that omits
+it is still read.
 
 §5.1 still requires native `cadence` when rate is known; this library writes
 and reads both `cadence` and ID 93.

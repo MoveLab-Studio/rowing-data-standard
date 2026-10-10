@@ -408,9 +408,9 @@ Curve data MUST be encoded as **UINT16** arrays (developer fields with array siz
 
 Data that does not fit the FIT file MAY be shipped in a companion `.json` file. This standard does not define its contents or structure; that is up to the producer. The companion file is optional: a FIT file MUST be complete and conforming without it, and consumers MAY ignore it.
 
-## 8. Data Quality and Validation
+## 7. Data Quality and Validation
 
-### 8.1 Value Ranges
+### 7.1 Value Ranges
 
 Producers MUST NOT exceed FIT type limits (encoded value × scale must fit the base type). Producers SHOULD NOT clamp valid measurements to “typical” ranges.
 
@@ -423,13 +423,13 @@ Producers MUST NOT exceed FIT type limits (encoded value × scale must fit the b
 
 Consumers MAY warn on values outside typical ranges but MUST accept physically valid data within type limits.
 
-### 8.2 Missing Data
+### 7.2 Missing Data
 
 - Missing or unavailable fields SHOULD be omitted from the file
 - Producers MUST NOT emit fields with placeholder values (e.g., -1, 999) without documentation
 - Zero values SHOULD indicate actual measurements of zero (not missing data)
 
-### 8.3 Consistency
+### 7.3 Consistency
 
 While strict validation is not enforced, producers SHOULD maintain internal consistency:
 
@@ -437,22 +437,11 @@ While strict validation is not enforced, producers SHOULD maintain internal cons
 - In-stroke axis metadata consistent with stroke scalars
 - Summary oarlock fields = average of per-side fields (when both present)
 
-## 9. Field Registry
-
-### 9.1 Reserved ID Ranges
+## 8. Field Registry
 
 A developer field number is a single byte (`field_definition_number`, UINT8), and 255 is the FIT invalid value for that type. Field IDs therefore range from 0 to 254. This is a hard limit of the FIT format, not an allocation choice of this standard.
 
-| Range | Purpose | Status |
-|-------|---------|--------|
-| 0-19 | Core rowing metrics | Assigned |
-| 20-59 | Reserved for future curve data | Available |
-| 60 | HandleForceCurve | Assigned |
-| 61-89 | Reserved for future curve data | Available |
-| 90-92 | In-stroke axis metadata | Assigned |
-| 93-199 | Extended standard fields | SlipThreshold (94), WashThreshold (95) and StrokeState (96) assigned; remainder available |
-| 200-211 | Dual oarlock per-side | Assigned |
-| 212-254 | Reserved for future extensions | Available |
+Which IDs are assigned, reserved or available is listed in the [field ID registry](../registry/field-ids.md). It is the single list of allocations; no ID is used before it is recorded there.
 
 ## Appendix A: Terminology
 

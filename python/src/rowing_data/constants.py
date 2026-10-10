@@ -12,6 +12,11 @@ from uuid import NAMESPACE_DNS, UUID, uuid5
 # Draft version this package implements. Not a ratified standard.
 STANDARD_VERSION = "0.1"
 
+# Encoding generation written in DeveloperDataId.application_version.
+# Separate from STANDARD_VERSION. Increment only when an existing field changes
+# meaning. Absent on files written before this field was defined.
+PROTOCOL_VERSION = 1
+
 APPLICATION_UUID: UUID = uuid5(NAMESPACE_DNS, "rowingdata")
 APPLICATION_ID: bytes = APPLICATION_UUID.bytes
 

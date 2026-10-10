@@ -8,7 +8,12 @@ from pathlib import Path
 from fitparse import FitFile
 
 from .codec import decode
-from .constants import APPLICATION_ID, RecordingStrategy, StrokeState
+from .constants import (
+    APPLICATION_ID,
+    PROTOCOL_VERSION,
+    RecordingStrategy,
+    StrokeState,
+)
 from .fields import FieldDef, field_by_id, field_by_name
 from .model import ATTR_BY_FIELD_ID, Lap, Record, RowingSession
 from .validation import Issue
@@ -39,9 +44,12 @@ def read_fit(path: str | Path) -> RowingSession:
     messages = list(fit.messages)
     our_indexes = _developer_indexes_for_app(messages)
     our_fields, issues = _our_developer_fields(messages, our_indexes)
+    issues.extend(_protocol_version_issues(messages))
 
     strategy = RecordingStrategy.UNKNOWN
     start_time: datetime | None = None
+    slip_threshold_n: int | None = None
+    wash_threshold_n: int | None = None
     for message in messages:
         if message.name != "session":
             continue
@@ -51,6 +59,8 @@ def read_fit(path: str | Path) -> RowingSession:
         strategy, strategy_issue = _recording_strategy(message, our_fields)
         if strategy_issue is not None:
             issues.append(strategy_issue)
+        slip_threshold_n = _session_developer_int(message, our_fields, "SlipThreshold")
+        wash_threshold_n = _session_developer_int(message, our_fields, "WashThreshold")
         break
 
     laps = _laps(messages)
@@ -75,6 +85,8 @@ def read_fit(path: str | Path) -> RowingSession:
         recording_strategy=strategy,
         laps=tuple(laps),
         start_time=start_time,
+        slip_threshold_n=slip_threshold_n,
+        wash_threshold_n=wash_threshold_n,
         read_issues=tuple(issues),
     )
 
@@ -100,6 +112,33 @@ def _developer_indexes_for_app(messages: list) -> set[int]:
         index = message.get_value("developer_data_index")
         indexes.add(0 if index is None else int(index))
     return indexes
+
+
+def _protocol_version_issues(messages: list) -> list[Issue]:
+    """Warn when the file's protocol version is newer than this sample.
+
+    A missing application_version is a file from before the field existed.
+    Those files are read. They are not rejected and they are not warned.
+    """
+    issues: list[Issue] = []
+    for message in messages:
+        if message.name != "developer_data_id":
+            continue
+        if _as_bytes(message.get_value("application_id")) != APPLICATION_ID:
+            continue
+        version = message.get_value("application_version")
+        if version is None:
+            continue
+        if int(version) > PROTOCOL_VERSION:
+            issues.append(
+                Issue(
+                    "warning",
+                    "protocol_version",
+                    f"application_version {int(version)} is newer than "
+                    f"{PROTOCOL_VERSION}; reading the fields this sample knows",
+                )
+            )
+    return issues
 
 
 def _our_developer_fields(
@@ -145,6 +184,21 @@ def _our_developer_fields(
         if name:
             by_name[str(name)] = registry
     return by_name, issues
+
+
+def _session_developer_int(
+    message, our_fields: dict[str, FieldDef], name: str
+) -> int | None:
+    spec = our_fields.get(name)
+    if spec is None:
+        return None
+    field = message.get(name)
+    if field is None or field.raw_value is None:
+        return None
+    if isinstance(field.raw_value, list | tuple):
+        return None
+    decoded = decode(spec, int(field.raw_value))
+    return None if decoded is None else int(decoded)
 
 
 def _recording_strategy(

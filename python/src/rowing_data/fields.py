@@ -1,4 +1,4 @@
-"""Machine-readable field registry for Draft v0.1 (Levels 1–2).
+"""Machine-readable field registry for Draft v0.1 (core fields).
 
 Developer-field rows match spec/FIT_STANDARD.md and registry/field-ids.md.
 Native FIT fields are listed because producers SHOULD use them instead of
@@ -100,7 +100,7 @@ def _native(
     )
 
 
-# Assigned developer fields for Levels 1–2. IDs 11–18, 20–92, 200–211 are later.
+# Assigned core developer fields. IDs 11–18, 20–92, 200–211 are later.
 DEVELOPER_FIELDS: tuple[FieldDef, ...] = (
     _dev(0, "DriveLength", MessageType.RECORD, BaseType.UINT16, 1, "mm"),
     _dev(1, "StrokeDriveTime", MessageType.RECORD, BaseType.UINT16, 1, "ms"),

@@ -1,4 +1,4 @@
-"""FIT writer emits the standard application ID and Level 1–2 fields."""
+"""FIT writer emits the standard application ID and core fields."""
 
 from __future__ import annotations
 

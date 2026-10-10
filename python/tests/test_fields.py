@@ -1,4 +1,4 @@
-"""Registry matches Draft v0.1 assigned Level 1–2 fields."""
+"""Registry matches Draft v0.1 assigned core fields."""
 
 from __future__ import annotations
 
@@ -82,6 +82,13 @@ def test_developer_fields_match_draft_tables() -> None:
 def test_developer_field_ids_are_unique() -> None:
     ids = [field.field_id for field in DEVELOPER_FIELDS]
     assert len(ids) == len(set(ids))
+
+
+def test_developer_field_ids_stop_at_254() -> None:
+    """field_definition_number is UINT8; 255 is the FIT invalid value."""
+    for field in DEVELOPER_FIELDS:
+        assert field.field_id is not None
+        assert 0 <= field.field_id <= 254
 
 
 def test_field_lookup() -> None:

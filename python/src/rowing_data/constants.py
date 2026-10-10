@@ -38,3 +38,14 @@ class RecordingStrategy(IntEnum):
     UNKNOWN = 0
     STROKE_BOUNDARY = 1
     GPS_UPDATE = 2
+    TIME_SAMPLED = 3
+
+
+class StrokeState(IntEnum):
+    """Record developer field ID 96. Meaningful for TimeSampled files."""
+
+    UNKNOWN = 0
+    WAITING = 1
+    DRIVE = 2
+    DWELL = 3
+    RECOVERY = 4

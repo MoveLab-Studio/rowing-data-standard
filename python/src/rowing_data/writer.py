@@ -28,7 +28,12 @@ from fit_tool.profile.profile_type import (
 )
 
 from .codec import encode
-from .constants import APPLICATION_ID, CYCLE_LENGTH16_SCALE, PROTOCOL_VERSION
+from .constants import (
+    APPLICATION_ID,
+    CYCLE_LENGTH16_SCALE,
+    PROTOCOL_VERSION,
+    RecordingStrategy,
+)
 from .fields import BaseType, FieldDef, field_by_id, field_by_name
 from .model import (
     RECORD_DEVELOPER_ATTRS,
@@ -168,6 +173,9 @@ def _last_distance(session: RowingSession) -> float:
 def _record_developer_fields_used(session: RowingSession) -> tuple[FieldDef, ...]:
     used: list[FieldDef] = []
     for field_id, attr in RECORD_DEVELOPER_ATTRS:
+        time_sampled = session.recording_strategy is RecordingStrategy.TIME_SAMPLED
+        if field_id == 96 and not time_sampled:
+            continue
         if any(getattr(record, attr) is not None for record in session.records):
             used.append(field_by_id(field_id))
     return tuple(used)

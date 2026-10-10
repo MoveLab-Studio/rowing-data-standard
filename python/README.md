@@ -19,6 +19,9 @@ it is still read.
 §5.1 still requires native `cadence` when rate is known; this library writes
 and reads both `cadence` and ID 93.
 
+`RecordingStrategy` includes TimeSampled (3). `StrokeState` (ID 96) is written
+only for that strategy: 0 Unknown, 1 Waiting, 2 Drive, 3 Dwell, 4 Recovery.
+
 Force is `AverageDriveForce` (6) and `PeakDriveForce` (7), in newtons. Fields 4
 and 5 are not part of this sample.
 

@@ -17,7 +17,7 @@ from fit_tool.profile.messages.session_message import SessionMessage
 from fit_tool.profile.profile_type import FileType, Manufacturer
 
 from rowing_data import APPLICATION_ID, read_fit, validate
-from rowing_data.constants import RecordingStrategy
+from rowing_data.constants import RecordingStrategy, StrokeState
 from rowing_data.fields import field_by_id
 
 
@@ -194,6 +194,52 @@ def test_mismatched_file_scale_warns_and_uses_v01_units(tmp_path: Path) -> None:
     assert any(issue.code == "field_scale" for issue in validate(loaded))
 
 
+def test_unknown_stroke_state_is_unknown(tmp_path: Path) -> None:
+    path = tmp_path / "phase.fit"
+    builder = FitFileBuilder(auto_define=True, min_string_size=64)
+    file_id = FileIdMessage()
+    file_id.type = FileType.ACTIVITY
+    file_id.manufacturer = Manufacturer.DEVELOPMENT
+    file_id.time_created = _ts_ms()
+    builder.add(file_id)
+    dev_id = DeveloperDataIdMessage()
+    dev_id.application_id = APPLICATION_ID
+    dev_id.developer_data_index = 0
+    builder.add(dev_id)
+    desc = FieldDescriptionMessage()
+    desc.developer_data_index = 0
+    desc.field_definition_number = 96
+    desc.fit_base_type_id = BaseType.UINT8.value
+    desc.field_name = "StrokeState"
+    desc.scale = 1
+    desc.offset = 0
+    desc.units = ""
+    builder.add(desc)
+    phase = DeveloperField(
+        developer_data_index=0,
+        field_id=96,
+        size=1,
+        name="StrokeState",
+        base_type=BaseType.UINT8,
+        scale=1,
+        offset=0,
+        units="",
+    )
+    phase.set_value(0, 9)
+    session = SessionMessage()
+    session.start_time = _ts_ms()
+    session.timestamp = _ts_ms()
+    builder.add(session)
+    rec = RecordMessage(developer_fields=[phase])
+    rec.timestamp = _ts_ms()
+    builder.add(rec)
+    builder.build().to_file(str(path))
+
+    loaded = read_fit(path)
+    assert loaded.records[0].stroke_state is StrokeState.UNKNOWN
+    assert any(issue.code == "stroke_state" for issue in loaded.read_issues)
+
+
 def test_invalid_recording_strategy_is_unknown_with_warning(tmp_path: Path) -> None:
     path = tmp_path / "bad_strategy.fit"
     builder = FitFileBuilder(auto_define=True, min_string_size=64)
@@ -229,7 +275,7 @@ def test_invalid_recording_strategy_is_unknown_with_warning(tmp_path: Path) -> N
         offset=0,
         units="",
     )
-    strategy.set_value(0, 3)
+    strategy.set_value(0, 9)
     session = SessionMessage(developer_fields=[strategy])
     session.start_time = _ts_ms()
     session.timestamp = _ts_ms()

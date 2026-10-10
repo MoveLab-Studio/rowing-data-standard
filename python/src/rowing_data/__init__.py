@@ -6,6 +6,7 @@ from .constants import (
     APPLICATION_UUID,
     PROTOCOL_VERSION,
     STANDARD_VERSION,
+    StrokeState,
 )
 from .fields import (
     DEVELOPER_FIELDS,
@@ -32,6 +33,7 @@ __all__ = [
     "Record",
     "RowingSession",
     "STANDARD_VERSION",
+    "StrokeState",
     "decode",
     "encode",
     "field_by_id",

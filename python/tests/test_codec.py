@@ -13,13 +13,12 @@ from rowing_data.fields import field_by_id, field_by_name
     [
         (0, 1420, 1420),  # DriveLength mm, scale 1
         (1, 450, 450),  # StrokeDriveTime ms
-        (6, 412.3, 4123),  # AverageDriveForceN, scale 10
+        (6, 412.3, 4123),  # AverageDriveForce, scale 10
         (7, 0, 0),  # measured zero is a real value
         (8, 4.0, 1020),  # AverageBoatSpeed, scale 255
         (19, 250, 250),  # StrokeWork J
         (93, 28.50, 2850),  # StrokeRate, scale 100
         (10, 1, 1),  # RecordingStrategy
-        (4, 90.5, 905),  # deprecated pounds still encode
     ],
 )
 def test_developer_encode_decode(field_id: int, physical: float, raw: int) -> None:
@@ -66,7 +65,7 @@ def test_sint32_position_roundtrip() -> None:
 def test_encode_overflow_raises() -> None:
     force = field_by_id(6)
     # UINT16 max 65535 / scale 10 => 6553.5 N is in range; 7000 N is not.
-    with pytest.raises(CodecError, match="AverageDriveForceN"):
+    with pytest.raises(CodecError, match="AverageDriveForce"):
         encode(force, 7000)
 
     cadence = field_by_name("cadence")

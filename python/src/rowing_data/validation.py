@@ -1,7 +1,7 @@
 """Conformance checks for a RowingSession (Draft v0.1, core fields).
 
 Hard errors are type-limit violations and an unknown RecordingStrategy value.
-Typical-range and timing consistency checks are warnings only (§8).
+Typical-range and timing consistency checks are warnings only (§7).
 """
 
 from __future__ import annotations
@@ -9,13 +9,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .codec import CodecError, encode
+from .constants import RecordingStrategy
 from .fields import field_by_id, field_by_name
 from .model import NATIVE_RECORD_ATTRS, RECORD_DEVELOPER_ATTRS, Record, RowingSession
 
-# Informative typical ranges from spec §8.1 — not encoding limits.
+# Informative typical ranges from spec §7.1 — not encoding limits.
 _TYPICAL = {
-    "average_drive_force_n": (0.0, 2000.0),
-    "peak_drive_force_n": (0.0, 2000.0),
+    "average_drive_force": (0.0, 2000.0),
+    "peak_drive_force": (0.0, 2000.0),
     "drive_length_mm": (300.0, 1500.0),
     "stroke_rate": (10.0, 100.0),
 }
@@ -33,11 +34,11 @@ def validate(session: RowingSession) -> list[Issue]:
     """Return errors and warnings. Does not modify ``session``."""
     issues: list[Issue] = list(session.read_issues)
     for index, record in enumerate(session.records):
-        issues.extend(_record_issues(record, index))
+        issues.extend(_record_issues(record, index, session))
     return issues
 
 
-def _record_issues(record: Record, index: int) -> list[Issue]:
+def _record_issues(record: Record, index: int, session: RowingSession) -> list[Issue]:
     issues: list[Issue] = []
     for field_id, attr in RECORD_DEVELOPER_ATTRS:
         physical = getattr(record, attr)
@@ -69,6 +70,29 @@ def _record_issues(record: Record, index: int) -> list[Issue]:
             encode(field_by_name(native_name), physical)
         except CodecError as exc:
             issues.append(Issue("error", "overflow", str(exc), index))
+
+    if (
+        record.stroke_state is not None
+        and session.recording_strategy is not RecordingStrategy.TIME_SAMPLED
+    ):
+        issues.append(
+            Issue(
+                "warning",
+                "stroke_state",
+                "StrokeState is only meaningful when RecordingStrategy is TimeSampled",
+                index,
+            )
+        )
+
+    if record.heart_rate == 0:
+        issues.append(
+            Issue(
+                "warning",
+                "heart_rate",
+                "heart_rate 0 is omitted; leave the field out when there is no sensor",
+                index,
+            )
+        )
 
     rate = record.resolved_stroke_rate()
     drive = record.stroke_drive_time_ms

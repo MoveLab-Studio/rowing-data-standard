@@ -8,8 +8,9 @@
 > this text as a stable contract for shipping products yet.
 >
 > **Authorship.** The technical content of this draft was written by Sander
-> Roosendaal and previously released as v1.0 to v1.2. It is carried over here
-> unchanged apart from this banner and the version number.
+> Roosendaal and previously released as v1.0 to v1.2. It was adopted here from
+> v1.2 and has since been revised through issues and pull requests in this
+> repository.
 >
 > **This repository is the sole home of the standard.** The text, the issue
 > tracker, proposals and implementation work all live here. Earlier copies
@@ -18,8 +19,8 @@
 > **Why 0.1 and not 1.2.** The text was renumbered on adoption by the governance
 > group. A `1.x` number implies a ratified standard that an implementer can build
 > against, and nothing here has been ratified — so the version was reset to a
-> `0.x` series that states what this actually is. **No technical content changed
-> in the renumbering.** What number the first ratified release carries is still
+> `0.x` series that states what this actually is. What number the first
+> ratified release carries is still
 > open — note that `1.0` to `1.2` are already taken by the earlier lineage below,
 > so that needs settling before the first tag.
 >
@@ -27,17 +28,10 @@
 > earlier releases. They really were published under those numbers and are cited
 > by existing files and implementations, so the references are left exactly as
 > they stand.
->
-> **Known inconsistencies are left in place, not silently corrected.** Several
-> parts of this text contradict each other — units and field ID ranges
-> among them. They are raised on the issue tracker
-> so each one is decided on the record, because a "fix" to a unit or a scale
-> changes what goes into the file.
 
 
 **Version:** 0.1 — draft, not ratified  
-**Date:** August 31, 2026  
-**Supersedes:** v1.2 (3 August 2026) — renumbered, same technical content  
+**Based on:** v1.2 (3 August 2026)  
 **Application ID:** `89e86158-6d47-5c98-9d46-7d29437f27b9` (UUID v5 from DNS:rowingdata)
 
 ## 1. Introduction
@@ -190,7 +184,7 @@ Producers SHOULD use these native FIT fields for rowing data:
 
 | FIT Field | Type | Usage | Notes |
 |-----------|------|-------|-------|
-| timestamp | UINT32 | Record timestamp | Milliseconds since Garmin epoch (1989-12-31 UTC) |
+| timestamp | UINT32 | Record timestamp | Seconds since Garmin epoch (1989-12-31 UTC) |
 | distance | UINT32 | Cumulative distance | Meters, scale 100 |
 | cadence | UINT8 | Stroke rate (integer spm) | Strokes per minute, **rounded** to the nearest integer (not truncated); MUST be written when rate is known, for consumers that do not read `cadence256` |
 | cadence256 | UINT16 | Stroke rate (fractional spm) | Strokes per minute, scale 256 (1/256 spm); SHOULD be written when fractional rate is known |
@@ -222,7 +216,7 @@ A common convention for grouping laps into workouts and splits is expected in a 
 
 | Field Name | ID | Base Type | Scale | Units | Definition | Typical Range |
 |------------|----|-----------| ------|-------|------------|---------------|
-| DriveLength | 0 | UINT16 | 1 | mm | Distance traveled by handle along longitudinal axis during drive phase | 1.2-1.5 m |
+| DriveLength | 0 | UINT16 | 1 | mm | Distance traveled by handle along longitudinal axis during drive phase | 1200-1500 mm |
 | StrokeDriveTime | 1 | UINT16 | 1 | ms | Duration of drive phase | 300-600 ms |
 | DragFactor | 2 | UINT16 | 1 | | Resistance setting (ergometer) | Device-specific |
 | StrokeRecoveryTime | 3 | UINT16 | 1 | ms | Duration of recovery phase | 500-1500 ms |
@@ -343,7 +337,7 @@ In-stroke curve data describes how a quantity develops through a single stroke. 
 
 All other curves, such as boat acceleration, seat position and oar angular velocity, and any curve at a higher resolution than §6.5 allows, belong in the companion JSON file (§6.6). Their meaning depends on the exact equipment that measured them, and they would quickly grow the FIT file past what is practical to exchange.
 
-**Constraint:** In-stroke curve data MUST only appear when `RecordingStrategy=StrokeBoundary` (or Unknown with stroke-boundary semantics), as curves require stroke boundaries for interpretation.
+**Constraint:** In-stroke curve data MUST only appear when `RecordingStrategy=StrokeBoundary`, or when `RecordingStrategy` is absent or Unknown and each Record carrying a curve describes exactly one stroke, as curves require stroke boundaries for interpretation.
 
 ### 6.2 Field ID Allocation
 
@@ -400,59 +394,49 @@ The curve is produced on a best-effort basis: a producer writes the force curve 
 Curve data MUST be encoded as **UINT16** arrays (developer fields with array size > 1):
 
 - **Maximum points per curve:** 127 (FIT limit: 255 bytes / 2 bytes per UINT16)
-- **Encoding:** Unsigned 16-bit integers in range [0, 65535]
+- **Encoding:** Unsigned 16-bit integers in range [0, 65534]. 65535 is the FIT invalid value for UINT16 and marks a missing sample
 - **Data representation:** Handle force is non-negative; negative measured values MUST be written as 0
-- **Scale factor:** As declared in §6.4 and in the developer field description. Values are clipped to [0, 65535] after scaling.
+- **Scale factor:** As declared in §6.4 and in the developer field description. Values are clipped to [0, 65534] after scaling.
 
 ### 6.6 Companion Files
 
 Data that does not fit the FIT file MAY be shipped in a companion `.json` file. This standard does not define its contents or structure; that is up to the producer. The companion file is optional: a FIT file MUST be complete and conforming without it, and consumers MAY ignore it.
 
-## 8. Data Quality and Validation
+## 7. Data Quality and Validation
 
-### 8.1 Value Ranges
+### 7.1 Value Ranges
 
-Producers MUST NOT exceed FIT type limits (encoded value × scale must fit the base type). Producers SHOULD NOT clamp valid measurements to “typical” ranges.
+Producers MUST NOT exceed FIT type limits (the value multiplied by its scale must fit the base type). Producers SHOULD NOT clamp valid measurements to “typical” ranges.
 
 **Typical ranges** (informative, not encoding limits):
 
 - Force: 0-2000 N typical maximum
-- DriveLength: 1.2-1.5 m for full strokes; arms-only strokes may be ~0.3 m
+- DriveLength: 1200-1500 mm for full strokes; arms-only strokes may be ~300 mm
 - Angles: -180 to +180 degrees
 - Stroke rate: 10-40 spm typical; sprint work may exceed 60 spm (up to ~100 spm)
 
 Consumers MAY warn on values outside typical ranges but MUST accept physically valid data within type limits.
 
-### 8.2 Missing Data
+### 7.2 Missing Data
 
 - Missing or unavailable fields SHOULD be omitted from the file
-- Producers MUST NOT emit fields with placeholder values (e.g., -1, 999) without documentation
+- Producers MUST NOT write placeholder values (e.g., -1, 999) for missing data; they omit the field instead
 - Zero values SHOULD indicate actual measurements of zero (not missing data)
+- Each FIT base type has an invalid value that means "no data": 255 for UINT8, 65535 for UINT16, 32767 for SINT16. Producers MUST NOT write it for a measured value; a measurement that would encode to it is clipped to the next valid value. Consumers MUST treat it as missing
 
-### 8.3 Consistency
+### 7.3 Consistency
 
 While strict validation is not enforced, producers SHOULD maintain internal consistency:
 
-- Drive + recovery time ≈ stroke period (60 / cadence)
+- Drive + recovery time ≈ stroke period (60000 / stroke rate, in ms)
 - In-stroke axis metadata consistent with stroke scalars
 - Summary oarlock fields = average of per-side fields (when both present)
 
-## 9. Field Registry
-
-### 9.1 Reserved ID Ranges
+## 8. Field Registry
 
 A developer field number is a single byte (`field_definition_number`, UINT8), and 255 is the FIT invalid value for that type. Field IDs therefore range from 0 to 254. This is a hard limit of the FIT format, not an allocation choice of this standard.
 
-| Range | Purpose | Status |
-|-------|---------|--------|
-| 0-19 | Core rowing metrics | Assigned |
-| 20-59 | Reserved for future curve data | Available |
-| 60 | HandleForceCurve | Assigned |
-| 61-89 | Reserved for future curve data | Available |
-| 90-92 | In-stroke axis metadata | Assigned |
-| 93-199 | Extended standard fields | SlipThreshold (94), WashThreshold (95) and StrokeState (96) assigned; remainder available |
-| 200-211 | Dual oarlock per-side | Assigned |
-| 212-254 | Reserved for future extensions | Available |
+Which IDs are assigned, reserved or available is listed in the [field ID registry](../registry/field-ids.md). It is the single list of allocations; no ID is used before it is recorded there.
 
 ## Appendix A: Terminology
 

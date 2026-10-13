@@ -56,6 +56,7 @@ def test_rowingdata_golden_file_if_present() -> None:
         RecordingStrategy.UNKNOWN,
         RecordingStrategy.STROKE_BOUNDARY,
         RecordingStrategy.GPS_UPDATE,
+        RecordingStrategy.TIME_SAMPLED,
     }
     assert len(session.records) > 0
     # In-stroke curve fields are ignored; core metrics should still parse.

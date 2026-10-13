@@ -75,6 +75,22 @@ def test_encode_overflow_raises() -> None:
 
 def test_uint16_upper_bound_accepted() -> None:
     work = field_by_id(19)
-    assert encode(work, 65535) == 65535
+    assert encode(work, 65534) == 65534
     with pytest.raises(CodecError):
         encode(work, 65536)
+
+
+@pytest.mark.parametrize(
+    ("name", "invalid"),
+    [
+        ("StrokeWork", 65535),  # UINT16
+        ("WorkoutState", 255),  # UINT8
+    ],
+)
+def test_invalid_value_is_never_written_as_a_measurement(
+    name: str, invalid: int
+) -> None:
+    field = field_by_name(name)
+    assert encode(field, invalid / field.scale) == invalid - 1
+    assert decode(field, invalid) is None
+    assert decode(field, invalid - 1) is not None

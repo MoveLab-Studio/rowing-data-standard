@@ -240,6 +240,51 @@ def test_unknown_stroke_state_is_unknown(tmp_path: Path) -> None:
     assert any(issue.code == "stroke_state" for issue in loaded.read_issues)
 
 
+def test_invalid_value_is_read_as_missing(tmp_path: Path) -> None:
+    path = tmp_path / "invalid.fit"
+    builder = FitFileBuilder(auto_define=True, min_string_size=64)
+    file_id = FileIdMessage()
+    file_id.type = FileType.ACTIVITY
+    file_id.manufacturer = Manufacturer.DEVELOPMENT
+    file_id.time_created = _ts_ms()
+    builder.add(file_id)
+    dev_id = DeveloperDataIdMessage()
+    dev_id.application_id = APPLICATION_ID
+    dev_id.developer_data_index = 0
+    builder.add(dev_id)
+    desc = FieldDescriptionMessage()
+    desc.developer_data_index = 0
+    desc.field_definition_number = 19
+    desc.fit_base_type_id = BaseType.UINT16.value
+    desc.field_name = "StrokeWork"
+    desc.scale = 1
+    desc.offset = 0
+    desc.units = ""
+    builder.add(desc)
+    work = DeveloperField(
+        developer_data_index=0,
+        field_id=19,
+        size=2,
+        name="StrokeWork",
+        base_type=BaseType.UINT16,
+        scale=1,
+        offset=0,
+        units="",
+    )
+    work.set_value(0, 65535)
+    session = SessionMessage()
+    session.start_time = _ts_ms()
+    session.timestamp = _ts_ms()
+    builder.add(session)
+    rec = RecordMessage(developer_fields=[work])
+    rec.timestamp = _ts_ms()
+    builder.add(rec)
+    builder.build().to_file(str(path))
+
+    loaded = read_fit(path)
+    assert loaded.records[0].stroke_work_j is None
+
+
 def test_invalid_recording_strategy_is_unknown_with_warning(tmp_path: Path) -> None:
     path = tmp_path / "bad_strategy.fit"
     builder = FitFileBuilder(auto_define=True, min_string_size=64)

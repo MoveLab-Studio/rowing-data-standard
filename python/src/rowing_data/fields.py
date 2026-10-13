@@ -40,6 +40,15 @@ BASE_TYPE_RANGE: dict[BaseType, tuple[int, int]] = {
     BaseType.SINT32: (-2_147_483_648, 2_147_483_647),
 }
 
+# FIT invalid value per base type: it means "no data" and is never a measurement.
+BASE_TYPE_INVALID: dict[BaseType, int] = {
+    BaseType.UINT8: 255,
+    BaseType.UINT16: 65535,
+    BaseType.UINT32: 4_294_967_295,
+    BaseType.SINT16: 32767,
+    BaseType.SINT32: 2_147_483_647,
+}
+
 
 @dataclass(frozen=True, slots=True)
 class FieldDef:

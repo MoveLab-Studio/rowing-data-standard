@@ -58,6 +58,7 @@ class Lap:
     total_elapsed_s: float | None = None
     total_distance_m: float | None = None
     intensity: WorkoutState | None = None
+    total_timer_s: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +78,22 @@ class RowingSession:
         if not self.records:
             raise ValueError("RowingSession has no records and no start_time")
         return self.records[0].timestamp
+
+    def moving_time_s(self) -> float:
+        """Sum of timer time over every lap except rest (spec §4.1).
+
+        A lap without ``total_timer_s`` falls back to ``total_elapsed_s``, which
+        is what the writer stores as its timer time.
+        """
+        total = 0.0
+        for lap in self.laps:
+            if lap.intensity is WorkoutState.REST:
+                continue
+            timer = lap.total_timer_s
+            if timer is None:
+                timer = lap.total_elapsed_s
+            total += timer or 0.0
+        return total
 
     def stroke_counts(self) -> list[int]:
         return stroke_counts([record.total_cycles for record in self.records])

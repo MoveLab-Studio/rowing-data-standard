@@ -249,6 +249,7 @@ def _laps(messages: list) -> tuple[list[Lap], list[Issue]]:
         if start is None:
             continue
         elapsed = message.get_value("total_elapsed_time")
+        timer = message.get_value("total_timer_time")
         distance = message.get_value("total_distance")
         intensity, issue = _as_workout_state(message.get_value("intensity"))
         if issue is not None:
@@ -257,6 +258,7 @@ def _laps(messages: list) -> tuple[list[Lap], list[Issue]]:
             Lap(
                 start_time=start,
                 total_elapsed_s=None if elapsed is None else float(elapsed),
+                total_timer_s=None if timer is None else float(timer),
                 total_distance_m=None if distance is None else float(distance),
                 intensity=intensity,
             )

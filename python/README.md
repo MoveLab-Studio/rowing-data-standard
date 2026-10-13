@@ -38,7 +38,9 @@ newtons, written when set.
 3 Cooldown, 4 Recovery, 5 Interval, 6 Other. An unknown value is read as Other.
 When a lap's `intensity` disagrees with a record, the lap wins. Every lap
 written here sets native `intensity`. A session with no laps is written as one
-active lap.
+active lap. `RowingSession.moving_time_s()` sums timer time over every lap except
+`Rest`, and `validate` warns about rowing data inside a rest lap (light rowing is
+`Recovery`).
 
 Heart rate is the native `heart_rate` field. When no sensor is connected, omit
 it rather than write 0. `cycle_length16` is the distance the boat travels in

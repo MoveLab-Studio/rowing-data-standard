@@ -222,3 +222,25 @@ def _assert_record_roundtrip(got: Record, want: Record) -> None:
         assert got.enhanced_speed_mps == pytest.approx(
             want.enhanced_speed_mps, abs=0.001
         )
+
+
+def test_roundtrip_timer_time_and_moving_time(tmp_path: Path) -> None:
+    start = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    rest = datetime(2026, 1, 1, 12, 1, tzinfo=UTC)
+    original = RowingSession(
+        records=(Record(timestamp=start), Record(timestamp=rest)),
+        laps=(
+            Lap(
+                start_time=start,
+                total_elapsed_s=60.0,
+                total_timer_s=55.0,
+                intensity=WorkoutState.INTERVAL,
+            ),
+            Lap(start_time=rest, total_elapsed_s=30.0, intensity=WorkoutState.REST),
+        ),
+    )
+    path = tmp_path / "moving.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert [lap.total_timer_s for lap in loaded.laps] == [55.0, 30.0]
+    assert loaded.moving_time_s() == 55.0

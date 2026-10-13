@@ -60,3 +60,42 @@ def test_empty_session_without_start_time_raises() -> None:
     session = RowingSession(records=())
     with pytest.raises(ValueError, match="no records"):
         session.session_start()
+
+
+def test_moving_time_sums_every_lap_except_rest() -> None:
+    session = RowingSession(
+        records=(),
+        laps=(
+            Lap(
+                start_time=_ts(0),
+                total_elapsed_s=100.0,
+                intensity=WorkoutState.WARMUP,
+            ),
+            Lap(
+                start_time=_ts(10),
+                total_elapsed_s=60.0,
+                total_timer_s=50.0,
+                intensity=WorkoutState.INTERVAL,
+            ),
+            Lap(
+                start_time=_ts(20),
+                total_elapsed_s=90.0,
+                intensity=WorkoutState.REST,
+            ),
+            Lap(
+                start_time=_ts(30),
+                total_elapsed_s=30.0,
+                intensity=WorkoutState.RECOVERY,
+            ),
+        ),
+    )
+    assert session.moving_time_s() == 180.0
+
+
+def test_rowing_in_a_rest_lap_is_flagged() -> None:
+    laps = (Lap(start_time=_ts(0), intensity=WorkoutState.REST),)
+    rowing = Record(timestamp=_ts(1), stroke_rate=20.0, lap_index=0)
+    idle = Record(timestamp=_ts(2), heart_rate=90, lap_index=0)
+    issues = validate(RowingSession(records=(rowing, idle), laps=laps))
+    flagged = [i.record_index for i in issues if i.code == "rest_lap_rowing"]
+    assert flagged == [0]

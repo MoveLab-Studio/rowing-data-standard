@@ -132,6 +132,8 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
             if lap.total_elapsed_s is not None:
                 lap_msg.total_elapsed_time = lap.total_elapsed_s
                 lap_msg.total_timer_time = lap.total_elapsed_s
+            if lap.total_timer_s is not None:
+                lap_msg.total_timer_time = lap.total_timer_s
             if lap.total_distance_m is not None:
                 lap_msg.total_distance = lap.total_distance_m
             lap_msg.sport = Sport.ROWING

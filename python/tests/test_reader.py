@@ -240,6 +240,111 @@ def test_unknown_stroke_state_is_unknown(tmp_path: Path) -> None:
     assert any(issue.code == "stroke_state" for issue in loaded.read_issues)
 
 
+def test_same_unit_file_scale_is_used_for_boat_speed(tmp_path: Path) -> None:
+    """Older AverageBoatSpeed files use scale 255. Units are still m/s."""
+    path = tmp_path / "boat_speed_255.fit"
+    field = field_by_id(8)
+    builder = FitFileBuilder(auto_define=True, min_string_size=64)
+
+    file_id = FileIdMessage()
+    file_id.type = FileType.ACTIVITY
+    file_id.manufacturer = Manufacturer.DEVELOPMENT
+    file_id.time_created = _ts_ms()
+    builder.add(file_id)
+
+    dev_id = DeveloperDataIdMessage()
+    dev_id.application_id = APPLICATION_ID
+    dev_id.developer_data_index = 0
+    builder.add(dev_id)
+
+    desc = FieldDescriptionMessage()
+    desc.developer_data_index = 0
+    desc.field_definition_number = field.field_id
+    desc.fit_base_type_id = BaseType.UINT16.value
+    desc.field_name = field.name
+    desc.scale = 255
+    desc.offset = 0
+    desc.units = "m/s"
+    builder.add(desc)
+
+    session = SessionMessage()
+    session.start_time = _ts_ms()
+    session.timestamp = _ts_ms()
+    builder.add(session)
+
+    speed = DeveloperField(
+        developer_data_index=0,
+        field_id=8,
+        size=2,
+        name=field.name,
+        base_type=BaseType.UINT16,
+        scale=255,
+        offset=0,
+        units="m/s",
+    )
+    speed.set_value(0, 4.0)  # raw 1020 at scale 255
+    rec = RecordMessage(developer_fields=[speed])
+    rec.timestamp = _ts_ms()
+    builder.add(rec)
+    builder.build().to_file(str(path))
+
+    loaded = read_fit(path)
+    assert loaded.records[0].average_boat_speed_mps == 4.0
+    assert any(issue.code == "field_scale" for issue in loaded.read_issues)
+
+
+def test_declared_boat_speed_scale_is_used(tmp_path: Path) -> None:
+    """A readable scale other than the registry scale still yields m/s."""
+    path = tmp_path / "boat_speed_10.fit"
+    field = field_by_id(8)
+    builder = FitFileBuilder(auto_define=True, min_string_size=64)
+
+    file_id = FileIdMessage()
+    file_id.type = FileType.ACTIVITY
+    file_id.manufacturer = Manufacturer.DEVELOPMENT
+    file_id.time_created = _ts_ms()
+    builder.add(file_id)
+
+    dev_id = DeveloperDataIdMessage()
+    dev_id.application_id = APPLICATION_ID
+    dev_id.developer_data_index = 0
+    builder.add(dev_id)
+
+    desc = FieldDescriptionMessage()
+    desc.developer_data_index = 0
+    desc.field_definition_number = field.field_id
+    desc.fit_base_type_id = BaseType.UINT16.value
+    desc.field_name = field.name
+    desc.scale = 10
+    desc.offset = 0
+    desc.units = "m/s"
+    builder.add(desc)
+
+    session = SessionMessage()
+    session.start_time = _ts_ms()
+    session.timestamp = _ts_ms()
+    builder.add(session)
+
+    speed = DeveloperField(
+        developer_data_index=0,
+        field_id=8,
+        size=2,
+        name=field.name,
+        base_type=BaseType.UINT16,
+        scale=10,
+        offset=0,
+        units="m/s",
+    )
+    speed.set_value(0, 4.0)  # raw 40 at scale 10; registry scale 100 would yield 0.4
+    rec = RecordMessage(developer_fields=[speed])
+    rec.timestamp = _ts_ms()
+    builder.add(rec)
+    builder.build().to_file(str(path))
+
+    loaded = read_fit(path)
+    assert loaded.records[0].average_boat_speed_mps == 4.0
+
+
 def test_invalid_recording_strategy_is_unknown_with_warning(tmp_path: Path) -> None:
     path = tmp_path / "bad_strategy.fit"
     builder = FitFileBuilder(auto_define=True, min_string_size=64)

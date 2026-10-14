@@ -4,12 +4,14 @@ FIT stores integers. A field's ``scale`` is the FIT-profile scale:
 ``physical = raw / scale`` and ``raw = round(physical * scale)``.
 
 Absent values are ``None`` and MUST be omitted from the file — never encoded
-as a placeholder such as -1 or 999.
+as a placeholder such as -1 or 999. Each base type's FIT invalid value (spec
+§7.2) means "no data": ``encode`` never produces it for a measurement, and
+``decode`` returns ``None`` for it.
 """
 
 from __future__ import annotations
 
-from .fields import BASE_TYPE_RANGE, FieldDef
+from .fields import BASE_TYPE_INVALID, BASE_TYPE_RANGE, FieldDef
 
 
 class CodecError(ValueError):
@@ -27,12 +29,15 @@ def encode(field: FieldDef, physical: float | int | None) -> int | None:
             f"{field.name}: encoded value {raw} does not fit {field.base_type} "
             f"range [{lo}, {hi}] (physical={physical!r}, scale={field.scale})"
         )
+    invalid = BASE_TYPE_INVALID[field.base_type]
+    if raw == invalid:
+        return invalid - 1
     return raw
 
 
 def decode(field: FieldDef, raw: int | None) -> float | int | None:
     """Convert a FIT raw integer to a physical value, or ``None`` if absent."""
-    if raw is None:
+    if raw is None or raw == BASE_TYPE_INVALID[field.base_type]:
         return None
     if field.scale == 1:
         return int(raw)

@@ -17,7 +17,7 @@ class Record:
     timestamp: datetime
     distance_m: float | None = None
     cadence: int | None = None
-    fractional_cadence: float | None = None
+    cadence256: float | None = None  # physical spm, native field 52
     heart_rate: int | None = None
     power: int | None = None
     enhanced_speed_mps: float | None = None
@@ -40,9 +40,9 @@ class Record:
 
     def resolved_stroke_rate(self) -> float | None:
         return resolve_stroke_rate(
+            cadence256=self.cadence256,
             stroke_rate=self.stroke_rate,
             cadence=self.cadence,
-            fractional_cadence=self.fractional_cadence,
         )
 
 
@@ -86,7 +86,6 @@ RECORD_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
     (8, "average_boat_speed_mps"),
     (9, "workout_state"),
     (19, "stroke_work_j"),
-    (93, "stroke_rate"),
     (96, "stroke_state"),
 )
 
@@ -102,7 +101,7 @@ SESSION_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
 NATIVE_RECORD_ATTRS: Sequence[tuple[str, str]] = (
     ("distance_m", "distance"),
     ("cadence", "cadence"),
-    ("fractional_cadence", "fractional_cadence"),
+    ("cadence256", "cadence256"),
     ("heart_rate", "heart_rate"),
     ("power", "power"),
     ("enhanced_speed_mps", "enhanced_speed"),

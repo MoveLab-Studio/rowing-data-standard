@@ -74,7 +74,7 @@ def test_writer_application_id_and_recording_strategy(tmp_path: Path) -> None:
         for msg in fit.get_messages("field_description")
     }
     assert descriptions[10] == "RecordingStrategy"
-    assert descriptions[93] == "StrokeRate"
+    assert 93 not in descriptions
     assert descriptions[0] == "DriveLength"
     assert descriptions[19] == "StrokeWork"
     assert descriptions[6] == "AverageDriveForce"
@@ -89,12 +89,12 @@ def test_writer_application_id_and_recording_strategy(tmp_path: Path) -> None:
     records = list(fit.get_messages("record"))
     assert len(records) == 2
     first = records[0]
-    assert first.get_value("cadence") == 28
-    frac = first.get("fractional_cadence")
-    assert frac is not None
-    assert frac.raw_value == 64
-    stroke_rate = next(field for field in first if field.name == "StrokeRate")
-    assert stroke_rate.raw_value == 2850
+    assert first.get_value("cadence") == 29
+    fractional = first.get("fractional_cadence")
+    assert fractional is None or fractional.raw_value is None
+    cadence256 = first.get("cadence256")
+    assert cadence256 is not None
+    assert cadence256.raw_value == 7296
     drive = next(field for field in first if field.name == "DriveLength")
     assert drive.raw_value == 1420
     work = next(field for field in first if field.name == "StrokeWork")

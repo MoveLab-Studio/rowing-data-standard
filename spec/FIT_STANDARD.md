@@ -279,7 +279,7 @@ WorkoutState uses the values of the native FIT `intensity` enum, so a producer c
 | Slip | 13 | SINT16 | 10 | deg | Oar slip angle (early blade entry) |
 | Wash | 14 | SINT16 | 10 | deg | Wash angle (late blade exit) |
 | PeakForceAngle | 15 | SINT16 | 10 | deg | Oar angle at peak force (0° = perpendicular to boat) |
-| EffectiveLength | 16 | UINT16 | 1 | mm | Effective oar lever length (rigging) |
+| EffectiveArc | 16 | UINT16 | 10 | deg | Effective part of the drive arc: Finish − Catch − Slip − Wash |
 | PeakForcePositionNorm | 17 | UINT16 | 1 | | Normalized position of peak force along drive (0-10000) |
 | PeakForcePositionAbs | 18 | UINT16 | 1 | mm | Absolute handle position at peak force |
 
@@ -287,6 +287,7 @@ WorkoutState uses the values of the native FIT `intensity` enum, so a producer c
 
 - **Oar angles** (Catch, Finish, PeakForceAngle) use the rowing convention: **0° = oar perpendicular to the boat's longitudinal axis**. Negative values indicate the catch direction (oar blade toward bow, handle toward stern); positive values indicate the finish direction (oar blade toward stern, handle toward bow). This is standard oarlock/gateforce sensor convention.
 - Summary fields (Catch, Finish, etc.) serve as representative values when per-side data unavailable
+- **EffectiveArc**: An angle, not a distance. It is tied to Slip and Wash and to the thresholds in §5.4, as in NK's effective length. The handle distance is `DriveLength` (§5.1). In versions before this change, ID 16 (and 210/211) was named `EffectiveLength` and described as a rigging length in mm. Files written under the old definition carry millimetres in the same IDs
 - **PeakForcePositionNorm**: Value in range 0-10000 representing ten-thousandths (0 = catch, 10000 = end of drive)
 - **PeakForceAngle** vs **PeakForcePosition**: Angle is for oar angle sensors (OTW); Position is for handle position sensors (indoor)
 
@@ -306,8 +307,8 @@ When both port and starboard oarlocks are present, per-side metrics MAY be inclu
 | WashStarboard | 207 | SINT16 | 10 | deg | Starboard |
 | PeakForceAnglePort | 208 | SINT16 | 10 | deg | Port |
 | PeakForceAngleStarboard | 209 | SINT16 | 10 | deg | Starboard |
-| EffectiveLengthPort | 210 | UINT16 | 1 | mm | Port |
-| EffectiveLengthStarboard | 211 | UINT16 | 1 | mm | Starboard |
+| EffectiveArcPort | 210 | UINT16 | 10 | deg | Port |
+| EffectiveArcStarboard | 211 | UINT16 | 10 | deg | Starboard |
 
 **Per-side field rules:**
 
@@ -327,7 +328,7 @@ The force thresholds an oarlock system uses to determine Slip and Wash, and so t
 
 **Rules:**
 
-- Producers SHOULD write these fields when they write Slip, Wash or EffectiveLength, so a consumer can tell whether values from different systems are comparable
+- Producers SHOULD write these fields when they write Slip, Wash or EffectiveArc, so a consumer can tell whether values from different systems are comparable
 - When absent, consumers MUST NOT assume a threshold
 
 ## 6. In-Stroke Curve Data
@@ -457,7 +458,7 @@ Which IDs are assigned, reserved or available is listed in the [field ID registr
 
 **Oar Angle:** Angle of oar relative to boat's longitudinal axis (0° = perpendicular).
 
-**Effective Length:** Horizontal distance from oarlock pin to handle (rigging metric).
+**Effective Arc:** The part of the drive arc in which the blade is effectively in the water: the arc from Catch to Finish, less Slip and Wash. In degrees. The total drive arc is not stored; it follows from Catch and Finish.
 
 **Drive Length:** Actual distance handle travels during drive phase.
 

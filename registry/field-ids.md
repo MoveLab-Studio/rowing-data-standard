@@ -85,7 +85,7 @@ Negative toward the catch, positive toward the finish.
 | 13 | `Slip` | SINT16 | 10 | deg | Early blade entry |
 | 14 | `Wash` | SINT16 | 10 | deg | Late blade exit |
 | 15 | `PeakForceAngle` | SINT16 | 10 | deg | Oar angle at peak force (angle sensors, OTW) |
-| 16 | `EffectiveLength` | UINT16 | 1 | mm | Oarlock pin to handle |
+| 16 | `EffectiveArc` | UINT16 | 10 | deg | Catch to finish, less Slip and Wash. Was `EffectiveLength`, mm |
 | 17 | `PeakForcePositionNorm` | UINT16 | 1 | — | 0–10000, ten-thousandths of the drive |
 | 18 | `PeakForcePositionAbs` | UINT16 | 1 | mm | Handle position at peak force (position sensors, indoor) |
 
@@ -106,8 +106,8 @@ carry the port/starboard average.
 | 207 | `WashStarboard` | SINT16 | 10 | deg | Starboard |
 | 208 | `PeakForceAnglePort` | SINT16 | 10 | deg | Port |
 | 209 | `PeakForceAngleStarboard` | SINT16 | 10 | deg | Starboard |
-| 210 | `EffectiveLengthPort` | UINT16 | 1 | mm | Port |
-| 211 | `EffectiveLengthStarboard` | UINT16 | 1 | mm | Starboard |
+| 210 | `EffectiveArcPort` | UINT16 | 10 | deg | Port. Was `EffectiveLengthPort`, mm |
+| 211 | `EffectiveArcStarboard` | UINT16 | 10 | deg | Starboard. Was `EffectiveLengthStarboard`, mm |
 
 ### Record message — in-stroke axis metadata
 

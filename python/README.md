@@ -10,14 +10,15 @@ shipping products.
 
 ## Scope
 
-Implements Draft v0.1 **§4 native FIT fields**, **§5.1 core metrics** (IDs 0–9,
-19, and **StrokeRate 93**), and Session **RecordingStrategy** (ID 10), under
+Implements Draft v0.1 **§4 native FIT fields**, **§5.1 core metrics** (IDs 0–9
+and 19), and Session **RecordingStrategy** (ID 10), under
 application UUID `89e86158-6d47-5c98-9d46-7d29437f27b9`. Producers write
 protocol version 1 in `DeveloperDataId.application_version`. A file that omits
 it is still read.
 
-§5.1 still requires native `cadence` when rate is known; this library writes
-and reads both `cadence` and ID 93.
+Stroke rate is native `cadence256` (scale 256) plus `cadence`, rounded to the
+nearest integer. This library does not write developer field `StrokeRate` (93)
+or native `fractional_cadence`.
 
 `RecordingStrategy` includes TimeSampled (3). `StrokeState` (ID 96) is written
 only for that strategy: 0 Unknown, 1 Waiting, 2 Drive, 3 Dwell, 4 Recovery.
@@ -33,7 +34,14 @@ newtons, written when set.
 - Oarlock summary fields 11–18
 - Dual-oarlock 200–211
 - In-stroke axis metadata 90–92, curve arrays, curve summaries, `.instroke.json`
-- WorkoutState enumeration (the draft has no value table; ID 9 is an opaque UINT8)
+
+`WorkoutState` (ID 9) uses the FIT intensity values: 0 Active, 1 Rest, 2 Warmup,
+3 Cooldown, 4 Recovery, 5 Interval, 6 Other. An unknown value is read as Other.
+When a lap's `intensity` disagrees with a record, the lap wins. Every lap
+written here sets native `intensity`. A session with no laps is written as one
+active lap. `RowingSession.moving_time_s()` sums timer time over every lap except
+`Rest`, and `validate` warns about rowing data inside a rest lap (light rowing is
+`Recovery`).
 
 `AverageBoatSpeed` (ID 8) uses scale 100 (0.01 m/s). When a file declares the
 same units and a different scale, the reader uses the scale in the file. Scale

@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 
 from rowing_data import read_fit, validate, write_fit
-from rowing_data.constants import RecordingStrategy, StrokeState
-from rowing_data.model import Record, RowingSession
+from rowing_data.constants import RecordingStrategy, StrokeState, WorkoutState
+from rowing_data.model import Lap, Record, RowingSession
 from sample_sessions import gps_update_session, stroke_boundary_session
 
 
@@ -27,6 +27,58 @@ def test_roundtrip_stroke_boundary(tmp_path: Path) -> None:
         _assert_record_roundtrip(got, want)
     assert loaded.stroke_counts() == [0, 1, 1]
     assert validate(loaded) == []
+
+
+def test_roundtrip_work_and_rest_laps(tmp_path: Path) -> None:
+    start = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    rest = datetime(2026, 1, 1, 12, 1, tzinfo=UTC)
+    original = RowingSession(
+        records=(
+            Record(timestamp=start, workout_state=WorkoutState.INTERVAL),
+            Record(timestamp=rest, workout_state=WorkoutState.REST),
+        ),
+        laps=(
+            Lap(start_time=start, intensity=WorkoutState.INTERVAL),
+            Lap(start_time=rest, intensity=WorkoutState.REST),
+        ),
+    )
+    path = tmp_path / "laps.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert [lap.intensity for lap in loaded.laps] == [
+        WorkoutState.INTERVAL,
+        WorkoutState.REST,
+    ]
+    assert loaded.records[0].resolved_workout_state(loaded.laps[0]) is (
+        WorkoutState.INTERVAL
+    )
+
+
+def test_synthetic_lap_is_active(tmp_path: Path) -> None:
+    path = tmp_path / "one-lap.fit"
+    write_fit(
+        RowingSession(
+            records=(Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC)),),
+        ),
+        path,
+    )
+    loaded = read_fit(path)
+    assert loaded.laps[0].intensity is WorkoutState.ACTIVE
+
+
+def test_roundtrip_workout_state(tmp_path: Path) -> None:
+    original = RowingSession(
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                workout_state=WorkoutState.RECOVERY,
+            ),
+        )
+    )
+    path = tmp_path / "state.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.records[0].workout_state is WorkoutState.RECOVERY
 
 
 def test_roundtrip_slip_and_wash_thresholds(tmp_path: Path) -> None:
@@ -170,3 +222,64 @@ def _assert_record_roundtrip(got: Record, want: Record) -> None:
         assert got.enhanced_speed_mps == pytest.approx(
             want.enhanced_speed_mps, abs=0.001
         )
+
+
+def test_roundtrip_timer_time_and_moving_time(tmp_path: Path) -> None:
+    start = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    rest = datetime(2026, 1, 1, 12, 1, tzinfo=UTC)
+    original = RowingSession(
+        records=(Record(timestamp=start), Record(timestamp=rest)),
+        laps=(
+            Lap(
+                start_time=start,
+                total_elapsed_s=60.0,
+                total_timer_s=55.0,
+                intensity=WorkoutState.INTERVAL,
+            ),
+            Lap(start_time=rest, total_elapsed_s=30.0, intensity=WorkoutState.REST),
+        ),
+    )
+    path = tmp_path / "moving.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert [lap.total_timer_s for lap in loaded.laps] == [55.0, 30.0]
+    assert loaded.moving_time_s() == 55.0
+
+
+def test_stroke_rate_precedence_matches_between_writer_and_validator(
+    tmp_path: Path,
+) -> None:
+    original = RowingSession(
+        records=(
+            Record(
+                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+                stroke_rate=30.0,
+                cadence256=28.5,
+            ),
+        )
+    )
+    path = tmp_path / "precedence.fit"
+    write_fit(original, path)
+    loaded = read_fit(path)
+    assert loaded.records[0].cadence256 == pytest.approx(28.5)
+    assert original.records[0].resolved_stroke_rate() == pytest.approx(28.5)
+
+
+@pytest.mark.parametrize("rate", [5.0, 120.0])
+def test_validate_warns_on_stroke_rate_outside_typical_range(rate: float) -> None:
+    session = RowingSession(
+        records=(Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC), stroke_rate=rate),),
+    )
+    issues = validate(session)
+    assert any(
+        i.code == "typical_range" and "stroke_rate" in i.message for i in issues
+    )
+
+
+def test_validate_accepts_typical_stroke_rate() -> None:
+    session = RowingSession(
+        records=(
+            Record(timestamp=datetime(2026, 1, 1, tzinfo=UTC), cadence256=24.0),
+        ),
+    )
+    assert validate(session) == []

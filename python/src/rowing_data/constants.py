@@ -29,7 +29,9 @@ FIT_EPOCH_UNIX = 631065600
 DISTANCE_SCALE = 100  # metres
 ENHANCED_SPEED_SCALE = 1000  # m/s
 CYCLE_LENGTH16_SCALE = 100  # metres
-FRACTIONAL_CADENCE_SCALE = 128  # fraction of 1 spm
+# Native record field 52. physical spm = raw / 256.
+CADENCE256_SCALE = 256
+CADENCE256_FIELD_ID = 52
 
 
 class RecordingStrategy(IntEnum):
@@ -49,3 +51,15 @@ class StrokeState(IntEnum):
     DRIVE = 2
     DWELL = 3
     RECOVERY = 4
+
+
+class WorkoutState(IntEnum):
+    """Record developer field ID 9, the native FIT intensity values."""
+
+    ACTIVE = 0
+    REST = 1
+    WARMUP = 2
+    COOLDOWN = 3
+    RECOVERY = 4
+    INTERVAL = 5
+    OTHER = 6

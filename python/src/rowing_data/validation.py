@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .codec import CodecError, encode
-from .constants import RecordingStrategy
+from .constants import RecordingStrategy, WorkoutState
 from .fields import field_by_id, field_by_name
 from .model import NATIVE_RECORD_ATTRS, RECORD_DEVELOPER_ATTRS, Record, RowingSession
 
@@ -18,8 +18,8 @@ _TYPICAL = {
     "average_drive_force": (0.0, 2000.0),
     "peak_drive_force": (0.0, 2000.0),
     "drive_length_mm": (300.0, 1500.0),
-    "stroke_rate": (10.0, 100.0),
 }
+_STROKE_RATE_RANGE = (10.0, 100.0)
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +71,37 @@ def _record_issues(record: Record, index: int, session: RowingSession) -> list[I
         except CodecError as exc:
             issues.append(Issue("error", "overflow", str(exc), index))
 
+    lap = _lap_for(record, session)
+    if (
+        lap is not None
+        and lap.intensity is not None
+        and record.workout_state is not None
+        and record.workout_state != lap.intensity
+    ):
+        issues.append(
+            Issue(
+                "warning",
+                "workout_state",
+                "WorkoutState disagrees with lap intensity; the lap wins",
+                index,
+            )
+        )
+
+    if (
+        lap is not None
+        and lap.intensity is WorkoutState.REST
+        and _is_rowing(record)
+    ):
+        issues.append(
+            Issue(
+                "warning",
+                "rest_lap_rowing",
+                "record in a rest lap carries rowing data; light rowing is "
+                "recovery, not rest",
+                index,
+            )
+        )
+
     if (
         record.stroke_state is not None
         and session.recording_strategy is not RecordingStrategy.TIME_SAMPLED
@@ -95,6 +126,17 @@ def _record_issues(record: Record, index: int, session: RowingSession) -> list[I
         )
 
     rate = record.resolved_stroke_rate()
+    if rate is not None:
+        lo, hi = _STROKE_RATE_RANGE
+        if rate < lo or rate > hi:
+            issues.append(
+                Issue(
+                    "warning",
+                    "typical_range",
+                    f"stroke_rate={rate!r} is outside typical [{lo}, {hi}]",
+                    index,
+                )
+            )
     drive = record.stroke_drive_time_ms
     recovery = record.stroke_recovery_time_ms
     if rate and rate > 0 and drive is not None and recovery is not None:
@@ -111,3 +153,28 @@ def _record_issues(record: Record, index: int, session: RowingSession) -> list[I
                 )
             )
     return issues
+
+
+def _lap_for(record: Record, session: RowingSession):
+    if record.lap_index is None:
+        return None
+    if record.lap_index < 0 or record.lap_index >= len(session.laps):
+        return None
+    return session.laps[record.lap_index]
+
+
+def _is_rowing(record: Record) -> bool:
+    rate = record.resolved_stroke_rate()
+    if (rate or 0) > 0 or (record.power or 0) > 0:
+        return True
+    return any(
+        getattr(record, attr) is not None
+        for attr in (
+            "drive_length_mm",
+            "stroke_drive_time_ms",
+            "stroke_recovery_time_ms",
+            "average_drive_force",
+            "peak_drive_force",
+            "stroke_work_j",
+        )
+    )

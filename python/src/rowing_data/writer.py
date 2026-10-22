@@ -22,6 +22,7 @@ from fit_tool.profile.profile_type import (
     Event,
     EventType,
     FileType,
+    Intensity,
     Manufacturer,
     Sport,
     SubSport,
@@ -30,9 +31,11 @@ from fit_tool.profile.profile_type import (
 from .codec import encode
 from .constants import (
     APPLICATION_ID,
+    CADENCE256_SCALE,
     CYCLE_LENGTH16_SCALE,
     PROTOCOL_VERSION,
     RecordingStrategy,
+    WorkoutState,
 )
 from .fields import BaseType, FieldDef, field_by_id, field_by_name
 from .model import (
@@ -130,9 +133,12 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
             if lap.total_elapsed_s is not None:
                 lap_msg.total_elapsed_time = lap.total_elapsed_s
                 lap_msg.total_timer_time = lap.total_elapsed_s
+            if lap.total_timer_s is not None:
+                lap_msg.total_timer_time = lap.total_timer_s
             if lap.total_distance_m is not None:
                 lap_msg.total_distance = lap.total_distance_m
             lap_msg.sport = Sport.ROWING
+            lap_msg.intensity = _fit_intensity(lap.intensity)
             builder.add(lap_msg)
     else:
         lap_msg = LapMessage()
@@ -143,6 +149,7 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
         lap_msg.total_timer_time = elapsed_s
         lap_msg.total_distance = total_distance
         lap_msg.sport = Sport.ROWING
+        lap_msg.intensity = Intensity.ACTIVE
         builder.add(lap_msg)
 
     for record in session.records:
@@ -155,6 +162,12 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
     builder.add(event_stop)
 
     builder.build().to_file(str(path))
+
+
+def _fit_intensity(intensity: WorkoutState | None) -> Intensity:
+    if intensity is None:
+        raise ValueError("every lap must set intensity")
+    return Intensity(int(intensity))
 
 
 def _unix_ms(moment: datetime) -> int:
@@ -259,13 +272,13 @@ def _record_message(
     rec = RecordMessage(developer_fields=dev_fields) if dev_fields else RecordMessage()
     rec.timestamp = _unix_ms(record.timestamp)
     _set_native_fields(rec, record)
-    cadence, fraction = _native_cadence(record)
+    cadence, cadence256 = _native_cadence(record)
     if cadence is not None:
         encode(field_by_name("cadence"), cadence)
         rec.cadence = cadence
-    if fraction is not None:
-        encode(field_by_name("fractional_cadence"), fraction)
-        rec.fractional_cadence = fraction
+    if cadence256 is not None:
+        encode(field_by_name("cadence256"), cadence256)
+        rec.cadence256 = cadence256
     return rec
 
 
@@ -320,10 +333,11 @@ def _attr_for_field_id(field_id: int | None) -> str:
 
 
 def _native_cadence(record: Record) -> tuple[int | None, float | None]:
-    """Integer cadence plus fractional part when a rate is known."""
-    if record.stroke_rate is not None:
-        integer, fraction = native_cadence_parts(record.stroke_rate)
-        return integer, fraction
-    if record.cadence is None and record.fractional_cadence is None:
+    """Rounded integer cadence and physical cadence256 when a rate is known."""
+    rate = record.cadence256 if record.cadence256 is not None else record.stroke_rate
+    if rate is not None:
+        integer, raw = native_cadence_parts(rate)
+        return integer, raw / CADENCE256_SCALE
+    if record.cadence is None:
         return None, None
-    return record.cadence, record.fractional_cadence
+    return record.cadence, None

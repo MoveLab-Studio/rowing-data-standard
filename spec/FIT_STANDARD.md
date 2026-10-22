@@ -458,7 +458,8 @@ Which IDs are assigned, reserved or available is listed in the [field ID registr
 
 **Oar Angle:** Angle of oar relative to boat's longitudinal axis (0° = perpendicular).
 
-**Effective Arc:** The part of the drive arc in which the blade is effectively in the water: the arc from Catch to Finish, less Slip and Wash. In degrees. The total drive arc is not stored; it follows from Catch and Finish.
+**Effective Arc:** The part of the drive arc in which the blade is effectively
+accelerating the boat: the arc from Catch to Finish, less Slip and Wash. In degrees. The total drive arc is not stored; it follows from Catch and Finish.
 
 **Drive Length:** Actual distance handle travels during drive phase.
 

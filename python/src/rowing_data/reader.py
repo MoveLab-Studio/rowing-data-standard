@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from .constants import (
     PROTOCOL_VERSION,
     RecordingStrategy,
     StrokeState,
+    WorkoutState,
 )
 from .fields import FieldDef, field_by_id, field_by_name
 from .model import ATTR_BY_FIELD_ID, Lap, Record, RowingSession
@@ -65,21 +67,23 @@ def read_fit(path: str | Path) -> RowingSession:
         wash_threshold_n = _session_developer_int(message, our_fields, "WashThreshold")
         break
 
-    laps = _laps(messages)
+    laps, lap_issues = _laps(messages)
+    issues.extend(lap_issues)
     records_list: list[Record] = []
     for message in messages:
         if message.name != "record":
             continue
-        record, state_issue = _record(message, our_fields, laps)
+        record, record_issues = _record(message, our_fields, laps)
         records_list.append(record)
-        if state_issue is not None:
-            issues.append(
+        if record_issues:
+            issues.extend(
                 Issue(
-                    state_issue.level,
-                    state_issue.code,
-                    state_issue.message,
+                    item.level,
+                    item.code,
+                    item.message,
                     len(records_list) - 1,
                 )
+                for item in record_issues
             )
     records = tuple(records_list)
     return RowingSession(
@@ -148,9 +152,10 @@ def _our_developer_fields(
 ) -> tuple[dict[str, FieldDef], list[Issue]]:
     """Map names to registry FieldDefs for the standard application UUID only.
 
-    Decode always uses Draft v0.1 scales/units. A file that advertises a
-    different scale (for example pre-v1.2 DriveLength in metres) is not
-    converted; a warning is recorded instead.
+    When the file's units match the registry and only the scale differs, decode
+    with the scale declared in the file (AverageBoatSpeed 255 and 100 are both
+    m/s). When the units differ, as with pre-v1.2 DriveLength in metres, keep
+    the registry units and record a warning. Do not convert those values.
     """
     by_name: dict[str, FieldDef] = {}
     issues: list[Issue] = []
@@ -168,11 +173,32 @@ def _our_developer_fields(
             registry = field_by_id(int(field_id))
         except KeyError:
             continue
-        file_scale = message.get_value("scale")
+        file_scale = _raw_scale(message)
+        file_units = message.get_value("units")
+        # Scale is a UINT8. 255 is its invalid value, so parsers drop it.
+        # That byte was the old AverageBoatSpeed scale. Units are still m/s.
         if (
-            file_scale not in (None, 0)
-            and float(file_scale) != float(registry.scale)
+            file_scale is None
+            and registry.field_id == 8
+            and _units_match(file_units, registry.units)
         ):
+            file_scale = 255
+        decode_as = registry
+        scale_differs = file_scale not in (None, 0) and float(file_scale) != float(
+            registry.scale
+        )
+        if scale_differs and _units_match(file_units, registry.units):
+            decode_as = replace(registry, scale=float(file_scale))
+            issues.append(
+                Issue(
+                    "warning",
+                    "field_scale",
+                    f"{registry.name} (ID {registry.field_id}) has file scale "
+                    f"{file_scale}; decoded with that scale "
+                    f"(registry scale is {registry.scale})",
+                )
+            )
+        elif scale_differs:
             issues.append(
                 Issue(
                     "warning",
@@ -182,10 +208,27 @@ def _our_developer_fields(
                     "decoded with v0.1 units, not converted",
                 )
             )
-        by_name[registry.name] = registry
+        by_name[decode_as.name] = decode_as
         if name:
-            by_name[str(name)] = registry
+            by_name[str(name)] = decode_as
     return by_name, issues
+
+
+def _raw_scale(message) -> object:
+    """Scale byte from the field description, including 255.
+
+    255 is the UINT8 invalid value, so ``get_value`` drops a scale of 255.
+    AverageBoatSpeed used that scale before it moved to 100, and the byte is
+    still meaningful.
+    """
+    field = message.get("scale")
+    return field.raw_value
+
+
+def _units_match(file_units: object, registry_units: str) -> bool:
+    if not isinstance(file_units, str):
+        return False
+    return file_units.strip() == registry_units
 
 
 def _session_developer_int(
@@ -236,8 +279,9 @@ def _as_datetime(value: object) -> datetime | None:
     return None
 
 
-def _laps(messages: list) -> list[Lap]:
+def _laps(messages: list) -> tuple[list[Lap], list[Issue]]:
     laps: list[Lap] = []
+    issues: list[Issue] = []
     for message in messages:
         if message.name != "lap":
             continue
@@ -247,16 +291,52 @@ def _laps(messages: list) -> list[Lap]:
         if start is None:
             continue
         elapsed = message.get_value("total_elapsed_time")
+        timer = message.get_value("total_timer_time")
         distance = message.get_value("total_distance")
+        intensity, issue = _as_workout_state(message.get_value("intensity"))
+        if issue is not None:
+            issues.append(issue)
         laps.append(
             Lap(
                 start_time=start,
                 total_elapsed_s=None if elapsed is None else float(elapsed),
+                total_timer_s=None if timer is None else float(timer),
                 total_distance_m=None if distance is None else float(distance),
+                intensity=intensity,
             )
         )
     laps.sort(key=lambda lap: lap.start_time)
-    return laps
+    return laps, issues
+
+
+def _as_workout_state(value: object) -> tuple[WorkoutState | None, Issue | None]:
+    if value is None:
+        return None, None
+    if isinstance(value, str):
+        try:
+            return WorkoutState[value.strip().upper()], None
+        except KeyError:
+            return WorkoutState.OTHER, Issue(
+                "warning",
+                "workout_state",
+                f"WorkoutState {value!r} is unknown; treating as Other",
+            )
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return WorkoutState.OTHER, Issue(
+            "warning",
+            "workout_state",
+            f"WorkoutState {value!r} is unknown; treating as Other",
+        )
+    try:
+        return WorkoutState(number), None
+    except ValueError:
+        return WorkoutState.OTHER, Issue(
+            "warning",
+            "workout_state",
+            f"WorkoutState {number} is above 6; treating as Other",
+        )
 
 
 def _lap_index(timestamp: datetime, laps: list[Lap]) -> int | None:
@@ -273,7 +353,7 @@ def _lap_index(timestamp: datetime, laps: list[Lap]) -> int | None:
 
 def _record(
     message, our_fields: dict[str, FieldDef], laps: list[Lap]
-) -> tuple[Record, Issue | None]:
+) -> tuple[Record, list[Issue]]:
     timestamp = _as_datetime(message.get_value("timestamp"))
     if timestamp is None:
         raise ValueError("record message is missing timestamp")
@@ -314,7 +394,13 @@ def _record(
             continue
         kwargs[attr] = decoded
 
-    return Record(**kwargs), stroke_issue  # type: ignore[arg-type]
+    record_issues = [stroke_issue] if stroke_issue is not None else []
+    if kwargs.get("workout_state") is not None:
+        parsed, state_issue = _as_workout_state(kwargs["workout_state"])
+        kwargs["workout_state"] = parsed
+        if state_issue is not None:
+            record_issues.append(state_issue)
+    return Record(**kwargs), record_issues  # type: ignore[arg-type]
 
 
 def _as_stroke_state(value: object) -> tuple[StrokeState | None, Issue | None]:

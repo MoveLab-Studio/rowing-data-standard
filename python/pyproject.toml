@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Draft Python implementation of the Rowing Data Standard (Garmin FIT developer fields)."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "UNLICENSED" }
+license = { text = "MIT" }
 dependencies = [
     "fit-tool==0.9.14",
     "fitparse==1.2.0",

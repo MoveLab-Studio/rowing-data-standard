@@ -40,3 +40,7 @@ say what breaks and for whom.
 - [ ] Version number in `spec/FIT_STANDARD.md` **not** changed — versions are
       assigned at release
 - [ ] Implementation evidence linked, for anything that changes file contents
+
+By opening this pull request I contribute under the licence of each path I
+change, and agree to the patent commitment, both as set out in
+[`LICENSE.md`](../LICENSE.md).

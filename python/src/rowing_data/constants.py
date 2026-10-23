@@ -21,8 +21,6 @@ APPLICATION_UUID: UUID = uuid5(NAMESPACE_DNS, "rowingdata")
 APPLICATION_ID: bytes = APPLICATION_UUID.bytes
 
 # Garmin FIT timestamps count seconds from 1989-12-31 00:00:00 UTC.
-# Native `timestamp` uses this epoch (seconds), despite the draft table saying
-# milliseconds — that wording is a FIT-profile mismatch, not a second epoch.
 FIT_EPOCH_UNIX = 631065600
 
 # Native FIT field scales: physical = raw / scale (FIT profile convention).

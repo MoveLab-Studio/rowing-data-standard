@@ -25,4 +25,3 @@ To regenerate that golden file, from the `rowingdata` repository:
 ```text
 python tools/build_example_standard_fit.py
 ```
-

@@ -1,16 +1,15 @@
 # rowing-data (Python)
 
-[![Python sample](https://github.com/MoveLab-Studio/rowing-data-standard/actions/workflows/python.yml/badge.svg)](https://github.com/MoveLab-Studio/rowing-data-standard/actions/workflows/python.yml)
+[![Python sample](https://github.com/Rowing-Industry-Trade-Association/rowing-data-standard/actions/workflows/python.yml/badge.svg)](https://github.com/Rowing-Industry-Trade-Association/rowing-data-standard/actions/workflows/python.yml)
 
-A **draft** Python implementation of the [Rowing Data Standard](../spec/FIT_STANDARD.md).
+An example Python implementation of the [Rowing Data Standard](../spec/FIT_STANDARD.md).
 
-This package implements **Draft v0.1**, which is not ratified. Field IDs, scales
-and units may still change. Do not treat this library as a stable contract for
-shipping products.
+This package implements part of **1.0-RC**, the release candidate for 1.0 (see
+[Scope](#scope)). The standard may still change before the final 1.0.
 
 ## Scope
 
-Implements Draft v0.1 **§4 native FIT fields**, **§5.1 core metrics** (IDs 0–9
+Implements 1.0-RC **§4 native FIT fields**, **§5.1 core metrics** (IDs 0–9
 and 19), and Session **RecordingStrategy** (ID 10), under
 application UUID `89e86158-6d47-5c98-9d46-7d29437f27b9`. Producers write
 protocol version 1 in `DeveloperDataId.application_version`. A file that omits
@@ -29,7 +28,7 @@ and 5 are not part of this sample.
 `SlipThreshold` (94) and `WashThreshold` (95) are optional session fields, in
 newtons, written when set.
 
-**Not implemented** (later work, or blocked on draft defects):
+**Not implemented** (later work, or blocked on defects in the text):
 
 - Oarlock summary fields 11–18
 - Dual-oarlock 200–211
@@ -52,8 +51,8 @@ Heart rate is the native `heart_rate` field. When no sensor is connected, omit
 it rather than write 0. `cycle_length16` is the distance the boat travels in
 one stroke cycle, not cumulative `distance` and not handle travel (DriveLength).
 
-**Pre-v1.2 files:** DriveLength used scale 100 / metres. This reader decodes
-with **v0.1 units (mm)** and records a `field_scale` warning. It does not
+**Older files:** DriveLength at scale 100 / metres. This reader decodes
+with **the standard's units (mm)** and records a `field_scale` warning. It does not
 silently convert old files into millimetres.
 
 Developer fields are interpreted only when they use the standard application
@@ -75,7 +74,7 @@ Use Python 3.11 or later.
 from pathlib import Path
 from rowing_data import STANDARD_VERSION, read_fit, validate, write_fit
 
-assert STANDARD_VERSION == "0.1"
+assert STANDARD_VERSION == "1.0-RC"
 session = read_fit("workout.fit")
 write_fit(session, Path("copy.fit"))
 issues = validate(session)  # includes warnings captured during read_fit
@@ -94,3 +93,9 @@ CI runs exactly these two commands on Python 3.11, 3.12 and 3.13
 when something under `python/` changes. The interop test against the
 `rowingdata` golden FIT file skips on CI, since that file is not in this
 repository.
+
+## Licence
+
+[Apache License 2.0](../LICENSES/Apache-2.0.txt), test fixtures included. See
+[`LICENSE.md`](../LICENSE.md). The FIT protocol and SDK are Garmin's; using this
+library does not grant rights to FIT.

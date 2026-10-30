@@ -5,15 +5,15 @@ repository exists to support editing it.
 
 ## Status
 
-**Draft v0.1, not ratified.** The text started as v1.2, renumbered to `0.1` on
-adoption here so that the version number stops implying a ratified standard,
-and has been revised here since.
+**1.0-RC, the release candidate for 1.0.** Build against it and report what you
+find; changes before the final 1.0 are limited to what implementation shows is
+needed.
 
-Version numbers `1.0` to `1.2` appearing inside the document refer to releases
-that predate this repository, not to anything tagged here.
-
-`main` is the current draft. A tagged GitHub release is a ratified version — that
-is the difference, and it is the only thing an implementer should cite.
+`main` is the working text between releases. A tagged GitHub release is a
+published version, released by RITA's Data Standards Working Group twice a
+year — that is the difference, and it is the only thing an implementer should
+cite. A release candidate is tagged too, as a GitHub pre-release. See
+[`../GOVERNANCE.md`](../GOVERNANCE.md#releases).
 
 ## Why it is one file
 
@@ -31,9 +31,9 @@ The specification has no normative machine-readable schema in this repository.
 Implementations currently hand-transcribe the field tables from the prose.
 
 Generating a schema from this document — or making the schema normative and the
-prose descriptive — is worth considering before the first release. Two hand-kept
-copies of the same field table will drift, and this draft has shown it: v1.2
-moved `EffectiveLength` (16) to millimetres and left the per-side pair 210/211 in
+prose descriptive — is worth considering after 1.0. Two hand-kept copies of the same field table
+will drift, and this text has shown it: an earlier revision moved
+`EffectiveLength` (16) to millimetres and left the per-side pair 210/211 in
 metres until it was corrected here.
 
 ## Editing

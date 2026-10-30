@@ -62,7 +62,7 @@ proposal two years from now, when someone asks why the standard works this way.
 - Round-trip evidence: a file written by one implementation and read correctly by
   another. Attach or link the FIT file.
 
-Required before ratification for anything that changes file contents.
+Required before adoption for anything that changes file contents.
 
 ## Open points
 

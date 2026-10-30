@@ -11,7 +11,7 @@ body:
         a way someone else can point out in one comment.
 
         If it survives, we will ask you to write a
-        [proposal](https://github.com/MoveLab-Studio/rowing-data-standard/blob/main/proposals/README.md).
+        [proposal](https://github.com/Rowing-Industry-Trade-Association/rowing-data-standard/blob/main/proposals/README.md).
         Field IDs are a single scarce byte, 0–254, so nothing is allocated casually.
   - type: textarea
     id: measurement

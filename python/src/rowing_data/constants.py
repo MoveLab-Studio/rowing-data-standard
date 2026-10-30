@@ -1,4 +1,4 @@
-"""Constants for Draft v0.1 of the Rowing Data Standard.
+"""Constants for 1.0-RC of the Rowing Data Standard.
 
 The application UUID is uuid5(NAMESPACE_DNS, "rowingdata") and MUST be written
 as a 16-byte array in FIT DeveloperDataIdMessage.
@@ -9,8 +9,8 @@ from __future__ import annotations
 from enum import IntEnum
 from uuid import NAMESPACE_DNS, UUID, uuid5
 
-# Draft version this package implements. Not a ratified standard.
-STANDARD_VERSION = "0.1"
+# Version of the standard this package implements.
+STANDARD_VERSION = "1.0-RC"
 
 # Encoding generation written in DeveloperDataId.application_version.
 # Separate from STANDARD_VERSION. Increment only when an existing field changes

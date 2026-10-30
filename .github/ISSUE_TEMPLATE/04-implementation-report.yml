@@ -9,7 +9,7 @@ body:
         **The most valuable issue type in this repository.** "We tried to write
         this field and our hardware cannot produce it at that precision" settles
         arguments that discussion cannot. Successful reports matter too — they are
-        the evidence that a part of the draft is ready to ratify.
+        the evidence that a part of the standard is ready to publish.
   - type: input
     id: what
     attributes:

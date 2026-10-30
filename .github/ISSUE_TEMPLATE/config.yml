@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: Propose a new or changed field
-    url: https://github.com/MoveLab-Studio/rowing-data-standard/blob/main/proposals/README.md
+    url: https://github.com/Rowing-Industry-Trade-Association/rowing-data-standard/blob/main/proposals/README.md
     about: Substantive changes go through a proposal, not an issue. Read the process first.

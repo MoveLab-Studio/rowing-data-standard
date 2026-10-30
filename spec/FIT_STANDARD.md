@@ -33,7 +33,7 @@
 **Version:** 0.1 — draft, not ratified  
 **Based on:** v1.2 (3 August 2026)  
 **Application ID:** `89e86158-6d47-5c98-9d46-7d29437f27b9` (UUID v5 from DNS:rowingdata)  
-**Licence:** © 2026 The Rowing Data Standard contributors, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [`LICENSE.md`](../LICENSE.md).
+**Licence:** © 2026 Rowing Industry Trade Association and the RITA Data Standard contributors, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [`LICENSE.md`](../LICENSE.md).
 
 ## 1. Introduction
 

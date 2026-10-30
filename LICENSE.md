@@ -1,23 +1,26 @@
 # Licensing
 
-Copyright © 2026 The Rowing Data Standard contributors.
+Copyright © 2026 Rowing Industry Trade Association (RITA) and the RITA Data
+Standard contributors.
 
-The repository is under three licences, by kind of content. Each one allows
-commercial use, and none of them requires you to publish your own source code.
+The RITA Data Standard is an open extension of Garmin's FIT protocol. It is free
+for anyone to read, use, implement and redistribute. No fee, royalty or RITA
+membership is required.
+
+The repository is under three licences, by kind of content, following the RITA
+Data Standards Working Group charter. Each one allows commercial use, and none
+of them requires you to publish your own source code.
 
 | What | Paths | Licence |
 |---|---|---|
-| The field ID registry | `registry/` | [CC0 1.0](LICENSES/CC0-1.0.txt): no rights reserved, no attribution required |
-| The specification and other prose | `spec/`, `proposals/`, `README.md` and other documentation | [CC BY 4.0](LICENSES/CC-BY-4.0.txt) |
-| Example implementations, tests and fixtures | `python/` and any other implementation directory | [MIT](LICENSES/MIT.txt) |
+| The specification: field definitions, code lists, guidance, examples and other prose | `spec/`, `registry/`, `proposals/`, `README.md` and other documentation | [CC BY 4.0](LICENSES/CC-BY-4.0.txt) |
+| Machine-readable files: schemas, templates and sample data | Test fixtures, and any schema or template directory | [Apache 2.0](LICENSES/Apache-2.0.txt) |
+| Example implementations | `python/` and any other implementation directory, except their fixtures | [MIT](LICENSES/MIT.txt) |
 
-**Why the registry is CC0.** Field IDs, names, scales and units end up as
-constants in implementations, open and closed source alike. Copying them should
-never raise a question about attribution.
-
-**Attribution under CC BY 4.0.** Credit "The Rowing Data Standard contributors",
-link to this repository, and say whether you changed the text. A modified or
-translated copy must not present itself as the Rowing Data Standard itself.
+**Attribution under CC BY 4.0.** Credit "RITA Data Standard", link to this
+repository, and say whether you changed the text. Field IDs, names, scales and
+units copied into an implementation as constants need no attribution beyond
+what the implementation's own licence already asks for.
 
 ## Patents
 
@@ -30,14 +33,24 @@ itself.
 ## Contributions
 
 Anything you contribute is accepted under the licence of the path it lands in,
-as listed above. Opening a pull request confirms you have the right to make the
-contribution on those terms, and that you agree to the patent commitment.
+as listed above. Opening an issue, a proposal or a pull request confirms you
+have the right to make the contribution on those terms, and that you agree to
+the patent commitment.
 
-## Trademarks
+## Names
+
+"RITA" and "RITA Data Standard" are RITA's names. You may adapt and
+redistribute the text under CC BY 4.0, but a modified version may not be
+presented as the official RITA Data Standard.
+
+## Garmin FIT
+
+The FIT protocol and SDK are Garmin's. This standard references Garmin's FIT
+documentation and does not reproduce it, and this repository does not include
+or redistribute the FIT SDK. Nothing here grants rights to FIT: each
+implementer obtains and complies with Garmin's FIT Protocol License directly.
 
 Garmin and FIT are trademarks of Garmin Ltd. or its subsidiaries. This standard
-uses the FIT format's developer fields but is not affiliated with Garmin or
-endorsed by it. This repository does not include or redistribute the Garmin FIT
-SDK.
+is not affiliated with Garmin or endorsed by it.
 
 *Not legal advice. Have your own counsel review these terms.*

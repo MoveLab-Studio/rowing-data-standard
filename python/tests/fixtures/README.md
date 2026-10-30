@@ -25,3 +25,9 @@ To regenerate that golden file, from the `rowingdata` repository:
 ```text
 python tools/build_example_standard_fit.py
 ```
+
+## Licence
+
+The fixtures are sample data and are under the
+[Apache License 2.0](../../../LICENSES/Apache-2.0.txt), unlike the rest of
+`python/`, which is MIT. See [`LICENSE.md`](../../../LICENSE.md).

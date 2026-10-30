@@ -16,7 +16,7 @@ it is provisional and open to change:
 | The specification text | **Draft v0.1** — not ratified |
 | Field IDs, scales and units | Proposed; may be renumbered or redefined |
 | Governance | **Undecided** — a small named editorial team, an open-source project, or open participation with named editors. The group's first decision |
-| Licensing | CC BY 4.0 for the text, CC0 for the registry, MIT for the code. See [Licensing](#licensing) |
+| Licensing | CC BY 4.0 for the text and registry, Apache 2.0 for sample data, MIT for the code. See [Licensing](#licensing) |
 | Where this repository ultimately lives | In progress — RITA adoption under active discussion, see [Hosting](#hosting-and-neutrality) |
 
 Do not build a shipping product against this text and expect it to hold. If you
@@ -115,19 +115,22 @@ not.
 
 ## Licensing
 
-The text, the registry and the code are each under a different licence. All
-three allow commercial use, and none of them requires you to open-source your
-implementation:
+Licensing follows the RITA Data Standards Working Group charter. All three
+licences allow commercial use, and none of them requires you to open-source
+your implementation:
 
-- **Specification and other prose**: [CC BY 4.0](LICENSES/CC-BY-4.0.txt).
-  Copy, translate and adapt it, with attribution.
-- **Field ID registry**: [CC0 1.0](LICENSES/CC0-1.0.txt). Copy IDs into code
-  without attribution.
+- **Specification, field registry and other prose**:
+  [CC BY 4.0](LICENSES/CC-BY-4.0.txt). Copy, translate and adapt it, with
+  attribution.
+- **Machine-readable files** — schemas, templates and sample data such as the
+  FIT test fixtures: [Apache 2.0](LICENSES/Apache-2.0.txt).
 - **Example implementations**: [MIT](LICENSES/MIT.txt).
 
-Contributors also commit to royalty-free licensing of any patent claim that
-implementing the standard cannot avoid. [`LICENSE.md`](LICENSE.md) gives the
-full terms, how to contribute under them, and the Garmin trademark notice.
+No fee, royalty or RITA membership is required. Contributors also commit to
+royalty-free licensing of any patent claim that implementing the standard
+cannot avoid. "RITA Data Standard" is RITA's name, and a modified version may
+not be presented as the official standard. [`LICENSE.md`](LICENSE.md) gives the
+full terms, how to contribute under them, and the Garmin FIT notice.
 
 ## Hosting and neutrality
 

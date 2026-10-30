@@ -1,37 +1,25 @@
 # Rowing Data Standard for Garmin FIT Format
 
-> ### ⚠️ Draft — not ratified
+> ### Release candidate — 1.0-RC
 >
-> This document is a **working draft**. Nothing in it is final: field IDs, scales,
-> units and the conformance language itself are all open to
-> change until the governance group ratifies a version. Do not treat any part of
-> this text as a stable contract for shipping products yet.
+> This is the **release candidate for version 1.0**, the first version of the
+> standard published by RITA's Data Standards Working Group. The field IDs,
+> scales and units in it are what 1.0 is intended to contain. It is published so
+> implementers can build against it and report problems before the final 1.0.
+> Changes before 1.0 are limited to what implementing this candidate shows is
+> needed, and each one is listed in the 1.0 release notes.
 >
-> **Authorship.** The technical content of this draft was written by Sander
-> Roosendaal and previously released as v1.0 to v1.2. It was adopted here from
-> v1.2 and has since been revised through issues and pull requests in this
-> repository.
+> **Origin.** This standard grew out of the rowing FIT developer field
+> specification written by Sander Roosendaal (Rowsandall). His work is the basis
+> of its technical content, which has since been revised through issues and pull
+> requests in this repository.
 >
 > **This repository is the sole home of the standard.** The text, the issue
 > tracker, proposals and implementation work all live here. Earlier copies
 > elsewhere are superseded and should not be used or cited.
->
-> **Why 0.1 and not 1.2.** The text was renumbered on adoption by the governance
-> group. A `1.x` number implies a ratified standard that an implementer can build
-> against, and nothing here has been ratified — so the version was reset to a
-> `0.x` series that states what this actually is. What number the first
-> ratified release carries is still
-> open — note that `1.0` to `1.2` are already taken by the earlier lineage below,
-> so that needs settling before the first tag.
->
-> Version numbers **1.0 to 1.2** appearing later in this document refer to those
-> earlier releases. They really were published under those numbers and are cited
-> by existing files and implementations, so the references are left exactly as
-> they stand.
 
-
-**Version:** 0.1 — draft, not ratified  
-**Based on:** v1.2 (3 August 2026)  
+**Version:** 1.0-RC — release candidate for 1.0  
+**Maintained by:** [Rowing Industry Trade Association](https://rowingindustry.com) Data Standards Working Group  
 **Application ID:** `89e86158-6d47-5c98-9d46-7d29437f27b9` (UUID v5 from DNS:rowingdata)  
 **Licence:** © 2026 Rowing Industry Trade Association and the Rowing Data Standard contributors, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [`LICENSE.md`](../LICENSE.md).
 
@@ -230,7 +218,7 @@ A common convention for grouping laps into workouts and splits is expected in a 
 
 **Notes:**
 
-- **DriveLength**: For OTW rowing, projection of handle trajectory on longitudinal axis. For indoor, handle travel catch-to-finish. Stored in **millimeters** (scale 1, units mm) for 1 mm precision (v1.2; v1.1 used scale 100 with units m).
+- **DriveLength**: For OTW rowing, projection of handle trajectory on longitudinal axis. For indoor, handle travel catch-to-finish. Stored in **millimeters** (scale 1, units mm) for 1 mm precision. Earlier files may carry DriveLength at scale 100 in metres; see the [field ID registry](../registry/field-ids.md).
 - **AverageBoatSpeed**: Scale 100 (0.01 m/s, maximum 655.35 m/s). A scale of 1000, matching native `enhanced_speed`, is not possible: the `scale` of a FIT field description is a single byte.
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
 - **Stroke rate** is carried by the native `cadence` and `cadence256` fields (§4), not by a developer field. Producers MUST NOT write native `fractional_cadence`: common platforms ignore it, and `cadence256` carries the same information.
@@ -478,12 +466,35 @@ This standard builds upon work by the rowing data community, including contribut
 
 ## Appendix C: Contact and Governance
 
-For questions, clarifications, or proposed amendments to this standard:
+This standard is maintained by the Data Standards Working Group (DSWG) of the
+Rowing Industry Trade Association (RITA), under the charter in
+[GOVERNANCE.md](../GOVERNANCE.md). The DSWG publishes two releases a year. Each
+release lists what changed, the recommendations it addresses, and the FIT
+protocol and SDK version it was validated against. A breaking change is
+announced at least one release before it takes effect.
 
-- **Issue tracker:** https://github.com/MoveLab-Studio/rowing-data-standard/issues
-- **Proposals:** https://github.com/MoveLab-Studio/rowing-data-standard/tree/main/proposals
+Anyone may recommend a change, whether or not their company is a RITA member,
+through the one channel the DSWG maintains:
+
+- **Issue tracker:** https://github.com/Rowing-Industry-Trade-Association/rowing-data-standard/issues
+- **Proposals:** https://github.com/Rowing-Industry-Trade-Association/rowing-data-standard/tree/main/proposals
 
 Proposed changes SHOULD be discussed with stakeholders before implementation to ensure ecosystem compatibility.
+
+## Appendix D: Licence and FIT
+
+This specification is published under the
+[Creative Commons Attribution 4.0 International License](../LICENSE.md). It is free
+to read, use, implement and redistribute; no fee, royalty or RITA membership is
+required.
+
+The FIT protocol and SDK are Garmin's. This standard references Garmin's FIT
+documentation and does not reproduce it, and nothing in it grants rights to FIT:
+each implementer obtains and complies with Garmin's FIT Protocol License
+directly.
+
+A modified version of this text may not be presented as the official standard
+or as endorsed by RITA.
 
 ---
 

@@ -69,7 +69,7 @@ class RowingSession:
     start_time: datetime | None = None
     slip_threshold_n: int | None = None
     wash_threshold_n: int | None = None
-    # Warnings collected by read_fit (invalid RecordingStrategy, pre-v1.2 scales).
+    # Warnings collected by read_fit (invalid RecordingStrategy, older scales).
     read_issues: tuple = ()
 
     def session_start(self) -> datetime:

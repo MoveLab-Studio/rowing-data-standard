@@ -1,4 +1,4 @@
-"""Machine-readable field registry for Draft v0.1 (core fields).
+"""Machine-readable field registry for 1.0-RC (core fields).
 
 Developer-field rows match spec/FIT_STANDARD.md and registry/field-ids.md.
 Native FIT fields are listed because producers SHOULD use them instead of

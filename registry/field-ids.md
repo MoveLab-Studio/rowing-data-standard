@@ -1,12 +1,9 @@
 # Developer field ID registry
 
-> **Draft.** Every allocation below is provisional and derived from
-> [`spec/FIT_STANDARD.md`](../spec/FIT_STANDARD.md) v0.1. Where this table and
-> the specification disagree, **the specification is authoritative** and the
-> disagreement is a bug — please report it.
->
-> References to `v1.1` and `v1.2` below are to releases that predate this
-> repository, from which this draft was renumbered.
+> **Release candidate.** The allocations below are those of
+> [`spec/FIT_STANDARD.md`](../spec/FIT_STANDARD.md) 1.0-RC, proposed for 1.0.
+> Where this table and the specification disagree, **the specification is
+> authoritative** and the disagreement is a bug — please report it.
 
 All fields in this standard live under a single FIT developer application ID, so
 that field numbers cannot collide with another vendor's private developer fields:
@@ -62,7 +59,7 @@ Free capacity today: **104 fields** in 93 and 97–199, plus 43 reserved in 212�
 
 | ID | Name | Base type | Scale | Units | Notes |
 |---|---|---|---|---|---|
-| 0 | `DriveLength` | UINT16 | 1 | mm | Handle travel along longitudinal axis during drive. Was scale 100 / m before v1.2 |
+| 0 | `DriveLength` | UINT16 | 1 | mm | Handle travel along longitudinal axis during drive. Earlier files may carry scale 100 / m |
 | 1 | `StrokeDriveTime` | UINT16 | 1 | ms | Drive phase duration |
 | 2 | `DragFactor` | UINT16 | 1 | — | Ergometer resistance setting; device-specific meaning |
 | 3 | `StrokeRecoveryTime` | UINT16 | 1 | ms | Recovery phase duration |
@@ -143,7 +140,7 @@ fixed and never allocated dynamically.
 |---|---|---|---|---|---|
 | 60 | `HandleForceCurve` | UINT16 array | 10 | N | Max 127 points, uniformly spaced along the declared abscissa. Recommended abscissa `HANDLE_DISTANCE_UNIFORM_M` (erg) or `TIME_UNIFORM_MS` (on the water). Negative values written as 0 |
 
-The curve summary statistics that the draft placed in 20–59 are withdrawn: they
+The curve summary statistics that an earlier revision placed in 20–59 are withdrawn: they
 were never defined precisely enough to implement. A properly defined statistic
 can be proposed into the reserved range.
 

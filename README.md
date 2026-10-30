@@ -1,177 +1,145 @@
-# Rowing Data Standard
+<p align="center">
+  <a href="https://rowingindustry.com">
+    <img src="assets/rita-logo.png" alt="RITA — Rowing Industry Trade Association" width="320">
+  </a>
+</p>
 
-An open, vendor-neutral standard for exchanging rowing session data between
-devices, apps and analysis platforms — built on **Garmin FIT developer fields**
-under a single registered namespace, covering both indoor and on-water rowing.
+<h1 align="center">Rowing Data Standard</h1>
+
+<p align="center">
+  An open, vendor-neutral standard for rowing session data in Garmin FIT files —<br>
+  indoor and on the water, from a GPS watch to an instrumented racing shell.
+</p>
+
+<p align="center">
+  <a href="spec/FIT_STANDARD.md"><img alt="Specification: 1.0-RC" src="https://img.shields.io/badge/spec-1.0--RC-orange"></a>
+  <a href="LICENSE.md"><img alt="Spec licence: CC BY 4.0" src="https://img.shields.io/badge/spec%20licence-CC%20BY%204.0-lightgrey"></a>
+  <a href="LICENSE.md"><img alt="Code licence: Apache 2.0" src="https://img.shields.io/badge/code%20licence-Apache%202.0-blue"></a>
+  <a href="https://github.com/Rowing-Industry-Trade-Association/rowing-data-standard/actions/workflows/python.yml"><img alt="Python library CI" src="https://github.com/Rowing-Industry-Trade-Association/rowing-data-standard/actions/workflows/python.yml/badge.svg"></a>
+</p>
+
+<p align="center">
+  <a href="spec/FIT_STANDARD.md"><b>Read the specification</b></a> ·
+  <a href="registry/field-ids.md">Field registry</a> ·
+  <a href="CONTRIBUTING.md">Contribute</a> ·
+  <a href="GOVERNANCE.md">Governance</a>
+</p>
 
 ---
 
-## ⚠️ Nothing here is definitive
+> [!IMPORTANT]
+> **1.0 release candidate.** This is the candidate for the first version of the
+> standard RITA publishes. Build against it and report what you find: changes
+> before the final 1.0 are limited to what implementation shows is needed, and
+> each is listed in the 1.0 release notes. Cite a tagged release, not `main`.
 
-**This repository is a working draft, not a published standard.** Everything in
-it is provisional and open to change:
+## Why
 
-| | Status |
-|---|---|
-| The specification text | **Draft v0.1** — not ratified |
-| Field IDs, scales and units | Proposed; may be renumbered or redefined |
-| Governance | **Undecided** — a small named editorial team, an open-source project, or open participation with named editors. The group's first decision |
-| Licensing | CC BY 4.0 for the text and registry, Apache 2.0 for code and sample data. See [Licensing](#licensing) |
-| Where this repository ultimately lives | In progress — RITA adoption under active discussion, see [Hosting](#hosting-and-neutrality) |
+Every rowing device and app records the same stroke — catch, drive, finish,
+recovery — and for years each has written it down differently. Moving a session
+from an erg, an oarlock sensor or a phone into an analysis platform has meant
+someone reverse-engineering someone else's file.
 
-Do not build a shipping product against this text and expect it to hold. If you
-are implementing today, watch this repository for the first ratified release —
-a tagged release is a ratified version, `main` is not.
+The Rowing Data Standard fixes the vocabulary once. It is maintained by the
+[Rowing Industry Trade Association](https://rowingindustry.com), free to use,
+and open to recommendations from anyone in the industry.
 
-Nothing in this repository commits any company to adopting the standard, and no
-statement here should be read as an endorsement on behalf of any organisation.
-
----
-
-## What this standard is
+## What it is
 
 - **A convention, not a new file format.** It defines rowing-specific developer
   fields *inside* standard Garmin FIT files, under one registered application
-  UUID (`89e86158-6d47-5c98-9d46-7d29437f27b9`) so that field IDs cannot collide
+  UUID (`89e86158-6d47-5c98-9d46-7d29437f27b9`), so field IDs cannot collide
   between vendors. Any existing FIT reader keeps working; readers that know the
-  standard get rowing detail.
+  standard get the rowing detail.
 - **Session data, recorded after the fact.** The scope is the file a device or
-  app writes when a session is finished — distance, stroke metrics, oarlock
-  angles, in-stroke force curves. Everything a consumer needs to reconstruct and
-  analyse a completed row.
-- **Partial support is still useful.** Producers write the fields they actually
-  measure, so a simple GPS watch and an instrumented racing shell can both use
-  it.
+  app writes when a session is finished: distance, stroke metrics, oarlock
+  angles, in-stroke force curves — everything a consumer needs to reconstruct
+  and analyse a completed row.
+- **Useful with partial support.** Producers write the fields they actually
+  measure, so a simple GPS watch and an instrumented racing shell can both
+  conform.
 
-## What it is **not**
+## What it is not
 
 - **Not a real-time or transmission protocol.** How a device streams to a phone
-  or display over Bluetooth or USB is explicitly out of scope. That is a harder
-  problem with more commercial sensitivity, and mixing it in would stall the
-  easy win. It may become separate future work; it is not this document.
-- **Not a device certification or test programme.** No badge, no audit, no fee.
-- **Not owned by any single vendor.** See below.
+  or display over Bluetooth or USB is out of scope.
+- **Not a certification programme.** No badge, no audit, no fee.
+- **Not a change to FIT.** Every revision stays interoperable with the FIT
+  protocol, and the FIT protocol and SDK remain Garmin's. Implementers obtain
+  Garmin's FIT Protocol License directly.
 
 ## Repository layout
 
+| Path | What it is |
+|---|---|
+| [`spec/FIT_STANDARD.md`](spec/FIT_STANDARD.md) | The specification — the actual deliverable |
+| [`registry/field-ids.md`](registry/field-ids.md) | Every allocated developer field ID |
+| [`proposals/`](proposals/README.md) | Substantive change proposals, one file each |
+| [`python/`](python/README.md) | An example Python library that reads and writes conforming FIT files |
+
+### Python library
+
+[`python/`](python/README.md) implements part of 1.0-RC: native FIT fields, core
+developer fields 0–9 and 19, StrokeRate 93, and Session RecordingStrategy 10.
+It does not yet implement oarlock, dual-oarlock or in-stroke curves.
+
+```sh
+pip install -e "./python[dev]"   # Python 3.11+
 ```
-spec/FIT_STANDARD.md      The specification draft — the actual deliverable
-registry/field-ids.md     Registry of every allocated developer field ID
-proposals/                Substantive change proposals, one file each
-python/                   Draft v0.1 Python library (FIT read/write)
-```
 
-A small Python package lives in [`python/`](python/README.md). It implements
-**Draft v0.1**: native FIT fields, core developer fields 0–9 and 19,
-StrokeRate 93, and Session RecordingStrategy 10. It is not a certified or
-ratified implementation, and it does not implement oarlock, dual-oarlock, or
-in-stroke curves. Install with `pip install -e "./python[dev]"` (Python 3.11+).
+## Contributing
 
-## How to take part
+Anyone can take part — you do not need to be a RITA member. Open an
+[issue](https://github.com/Rowing-Industry-Trade-Association/rowing-data-standard/issues)
+for a question, an ambiguity or an error; open a [proposal](proposals/README.md)
+for a new or changed field. Implementation reports and real sample files are the
+most valuable things you can bring.
 
-1. **Read** [`spec/FIT_STANDARD.md`](spec/FIT_STANDARD.md).
-2. **Open an issue** for a question, an ambiguity, or an error in the text.
-   Ambiguity is a defect: if you had to guess to implement something, so will
-   everyone else, and two implementations will guess differently.
-3. **Open a [proposal](proposals/README.md)** instead for a new field, a changed
-   type, scale or unit, or anything that could invalidate an existing file.
-4. **Bring implementation experience.** "We tried to write this field and our
-   device can't produce it at that precision" is worth more than any amount of
-   discussion. Real files and real constraints settle arguments — a change to the
-   specification is not considered proven until it has been demonstrated in a
-   working implementation, and a sample FIT file is the best evidence there is.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before your first pull request.
 
-Participation is open. You do not need to be a company, a RITA member, or
-invited by anyone to file an issue or a proposal.
+## Governance
 
-State your affiliation when you argue for something that favours it. Everyone
-here has a commercial position in rowing hardware or software — that is the
-point, not a problem. "Our device already does it this way" is a legitimate and
-often decisive argument; it just needs saying out loud.
+The standard is maintained by RITA's **Data Standards Working Group (DSWG)**, a
+chair and three to five voting members from RITA member companies, chartered by
+the RITA Board.
 
-## Using AI
+| Chair | Voting members | Subject matter experts |
+|---|---|---|
+| Michael Naughton (Nielsen-Kellerman) | Tony Andrews (CrewNerd)<br>Joris Blaak (MoveLab Studio)<br>Ryan Farrell (Concept2) | Scott Hamilton (Concept2)<br>Sander Roosendaal (Rowsandall)<br>Nils Steffensen (Nielsen-Kellerman)<br>Jaap van Ekris (OpenRowingMonitor) |
 
-**Using an AI assistant here is fine.** Use whatever tools get the work done.
+- Recommendations come in through this repository — every one is logged and
+  gets a recorded outcome: adopted, deferred, or declined with a reason.
+- The DSWG publishes **two releases a year**, each with release notes and the
+  FIT SDK version it was validated against.
+- Breaking changes are announced at least one release before they take effect.
 
-What does not change is that you are the author. A pull request or a proposal is
-your argument, and you have to be able to defend it on the thread without going
-back to the model. If you cannot say why a field is scaled the way it is, the
-review has nowhere to go — and reviewer attention is the scarcest thing this
-project has.
+The full charter, and how this repository carries it out, is in
+[GOVERNANCE.md](GOVERNANCE.md).
 
-Two failure modes are worth naming, because both cost something specific here:
-
-- **Invented specifics.** Models are fluent about field IDs, scales, units and
-  section numbers, and will cheerfully produce ones that do not exist. Check
-  anything concrete against [`registry/field-ids.md`](registry/field-ids.md) and
-  the specification text itself before you send it.
-- **Volume.** A generated proposal is long, confident and evenly weighted, which
-  reads like thoroughness and reviews like noise. Say the thing in a paragraph.
-
-The existing rules do the rest of the work. Anything that changes what goes into
-a file still has to be demonstrated in a working implementation — generated code
-that round-trips a real FIT file is evidence; generated prose describing it is
-not.
-
-## Licensing
-
-Licensing follows the RITA Data Standards Working Group charter. Both licences
-allow commercial use, and neither requires you to open-source your
-implementation:
-
-- **Specification, field registry and other prose**:
-  [CC BY 4.0](LICENSES/CC-BY-4.0.txt). Copy, translate and adapt it, with
-  attribution.
-- **Code and machine-readable files** — example implementations, schemas,
-  templates and sample data such as the FIT test fixtures:
-  [Apache 2.0](LICENSES/Apache-2.0.txt).
-
-No fee, royalty or RITA membership is required. Contributors also commit to
-royalty-free licensing of any patent claim that implementing the standard
-cannot avoid. A modified version may not be presented as the official standard
-or as endorsed by RITA. [`LICENSE.md`](LICENSE.md) gives the
-full terms, how to contribute under them, and the Garmin FIT notice.
-
-## Hosting and neutrality
-
-This repository sits under the **MoveLab Studio** GitHub organisation as a
-practical placeholder — it needed an address with issues, tags and releases
-faster than a new organisation could be agreed on. MoveLab does not own the
-standard, and hosting carries no editorial privilege.
-
-The intent is to move it to a neutral home, and discussions with the
-[Rowing Industry Trade Association (RITA)](https://rowingindustry.com) about
-adopting the standard are actively underway. RITA is the intended home.
-
-The ask of RITA is deliberately minimal: lend the standard its name and host the
-discussion at its meetings. **No budget, no secretariat and no administrative
-burden** are being requested. Adoption remains a decision for RITA's members and
-board to take in their own time, and nothing here presumes the outcome or speaks
-on RITA's behalf.
-
-Decide this before the first tagged release — implementers will start citing the
-URL, and moving it afterwards breaks links and citations.
-
-## Who is working on this
-
-Listed as initial participants in getting the draft moving:
+## Licence
 
 | | |
 |---|---|
-| Sander Roosendaal | Rowsandall — original author of the draft |
-| Michael Naughton | Nielsen-Kellerman |
-| Tony Andrews | CrewNerd |
-| Joris Blaak | MoveLab Studio — repository maintenance |
-| Jaap van Ekris | OpenRowingMonitor — initial FIT fields and type definitions |
+| Specification, field registry, guidance and examples | [CC BY 4.0](LICENSES/CC-BY-4.0.txt) |
+| Code, schemas, templates and sample data | [Apache 2.0](LICENSES/Apache-2.0.txt) |
 
-This list describes who has been active so far, not a closed membership or an
-appointed committee. It is wrong the moment someone else shows up — corrections
-and additions by issue or pull request are welcome.
+Contributors also commit to royalty-free licensing of any patent claim that
+implementing the standard cannot avoid. [`LICENSE.md`](LICENSE.md) has the full
+terms and the Garmin FIT notice.
 
-## Prior art and acknowledgements
+No fee, royalty or RITA membership is needed to use or implement the standard.
+You may fork and adapt the text, but a modified version may not be presented as
+the official standard or as endorsed by RITA.
 
-The draft builds on years of community work on rowing data, including from
-device manufacturers (Concept2, Nielsen-Kellerman, Quiske, RowPerfect) and
-software platforms (Intervals.icu, OpenRowingMonitor), and on the accumulated
-practice of the people who have been quietly parsing each other's files for a
-decade. Full acknowledgements are in Appendix B of the specification.
+## Acknowledgements
+
+The standard grew out of the rowing FIT developer field specification written
+by **Sander Roosendaal** (Rowsandall). His work is the basis of its technical
+content, and this standard would not exist without it.
+
+It builds on years of community work on rowing data, from device manufacturers
+(Concept2, Nielsen-Kellerman, Quiske, RowPerfect), software platforms
+(Intervals.icu, OpenRowingMonitor), and the people who have been quietly parsing
+each other's files for a decade. The working group that brought it to 1.0 is
+listed under [Governance](#governance). Full
+acknowledgements are in Appendix B of the specification.

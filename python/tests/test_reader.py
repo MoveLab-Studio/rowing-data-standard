@@ -162,7 +162,7 @@ def test_mismatched_file_scale_warns_and_uses_v01_units(tmp_path: Path) -> None:
     desc.field_definition_number = field.field_id
     desc.fit_base_type_id = BaseType.UINT16.value
     desc.field_name = field.name
-    desc.scale = 100  # pre-v1.2 metres encoding
+    desc.scale = 100  # older metres encoding
     desc.offset = 0
     desc.units = "m"
     builder.add(desc)
@@ -190,7 +190,7 @@ def test_mismatched_file_scale_warns_and_uses_v01_units(tmp_path: Path) -> None:
 
     loaded = read_fit(path)
     assert any(issue.code == "field_scale" for issue in loaded.read_issues)
-    # Draft v0.1 treats raw 142 as millimetres, not 1.42 m.
+    # 1.0-RC treats raw 142 as millimetres, not 1.42 m.
     assert loaded.records[0].drive_length_mm == 142
     assert any(issue.code == "field_scale" for issue in validate(loaded))
 

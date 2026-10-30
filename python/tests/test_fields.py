@@ -1,4 +1,4 @@
-"""Registry matches Draft v0.1 assigned core fields."""
+"""Registry matches the 1.0-RC assigned core fields."""
 
 from __future__ import annotations
 
@@ -49,8 +49,8 @@ EXPECTED_NATIVE_SCALES = {
 }
 
 
-def test_standard_version_is_draft_0_1() -> None:
-    assert STANDARD_VERSION == "0.1"
+def test_standard_version_is_1_0_rc() -> None:
+    assert STANDARD_VERSION == "1.0-RC"
 
 
 def test_application_uuid_is_uuid5_dns_rowingdata() -> None:
@@ -61,7 +61,7 @@ def test_application_uuid_is_uuid5_dns_rowingdata() -> None:
     assert len(APPLICATION_ID) == 16
 
 
-def test_developer_fields_match_draft_tables() -> None:
+def test_developer_fields_match_spec_tables() -> None:
     by_id = {field.field_id: field for field in DEVELOPER_FIELDS}
     assert set(by_id) == {row[0] for row in EXPECTED_DEVELOPER}
     for field_id, name, message, base_type, scale, units, deprecated in (

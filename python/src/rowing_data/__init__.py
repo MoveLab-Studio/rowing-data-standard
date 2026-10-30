@@ -1,4 +1,4 @@
-"""Draft v0.1 Python implementation of the Rowing Data Standard."""
+"""1.0-RC Python implementation of the Rowing Data Standard."""
 
 from .codec import CodecError, decode, encode
 from .constants import (

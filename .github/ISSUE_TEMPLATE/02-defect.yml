@@ -1,5 +1,5 @@
 name: Defect in the specification
-description: An internal contradiction, wrong unit or scale, broken cross-reference, or something the draft states incorrectly
+description: An internal contradiction, wrong unit or scale, broken cross-reference, or something the text states incorrectly
 title: "[defect] "
 labels: ["defect"]
 body:

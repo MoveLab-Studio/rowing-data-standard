@@ -43,7 +43,7 @@ _NATIVE_NAMES = {
 
 
 def read_fit(path: str | Path) -> RowingSession:
-    """Parse ``path`` and return a session in physical units (Draft v0.1)."""
+    """Parse ``path`` and return a session in physical units (1.0-RC)."""
     fit = FitFile(str(path), check_crc=False)
     messages = list(fit.messages)
     our_indexes = _developer_indexes_for_app(messages)
@@ -154,7 +154,7 @@ def _our_developer_fields(
 
     When the file's units match the registry and only the scale differs, decode
     with the scale declared in the file (AverageBoatSpeed 255 and 100 are both
-    m/s). When the units differ, as with pre-v1.2 DriveLength in metres, keep
+    m/s). When the units differ, as with older DriveLength in metres, keep
     the registry units and record a warning. Do not convert those values.
     """
     by_name: dict[str, FieldDef] = {}
@@ -204,7 +204,7 @@ def _our_developer_fields(
                     "warning",
                     "field_scale",
                     f"{registry.name} (ID {registry.field_id}) has file scale "
-                    f"{file_scale}, Draft v0.1 scale is {registry.scale}; "
+                    f"{file_scale}, 1.0-RC scale is {registry.scale}; "
                     "decoded with v0.1 units, not converted",
                 )
             )

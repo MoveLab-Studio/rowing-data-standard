@@ -16,7 +16,7 @@ out which it is.
    or because someone explains why the obvious fix breaks a shipping device.
 2. **Copy [`template.md`](template.md)** to `NNNN-short-title.md`, taking the
    next free number. Numbers are sequential and permanent, including for
-   rejected proposals — a rejected proposal is a record of a decision and stays
+   declined proposals — a declined proposal is a record of a decision and stays
    in the repository.
 3. **Open a pull request** adding the proposal file. The discussion happens on
    that pull request, so the reasoning stays attached to the text.
@@ -25,17 +25,22 @@ out which it is.
    why a field existed is a bad standard.
 5. **Demonstrate it.** Anything touching what goes into the file must be
    implemented and shown to round-trip in at least one implementation before it
-   is ratified. Text-only clarifications are exempt.
-6. **Ratify.** The proposal is merged with status `accepted`, the specification
-   is updated, and [`registry/field-ids.md`](../registry/field-ids.md) is updated
-   with it in the same pull request.
+   is adopted. Text-only clarifications are exempt.
+6. **Decide.** The chair puts the proposal on a release's milestone, and the
+   [Data Standards Working Group](../GOVERNANCE.md) decides it: consensus where
+   possible, otherwise a majority vote. Every proposal gets a recorded outcome —
+   `adopted`, `deferred`, or `declined` with a brief reason.
+7. **Merge.** An adopted proposal is merged with status `adopted`, the
+   specification is updated, and
+   [`registry/field-ids.md`](../registry/field-ids.md) is updated with it in the
+   same pull request. It is published in the next release. A breaking change is
+   announced in at least one release before the release that makes it.
 
-Who ratifies, and by what standard of consensus, is not yet settled — that is the
-governance question the group still owes an answer on. Until it is, expect a
-proposal to need visible agreement from the active participants and no sustained
-technical objection.
+Anyone can write, comment on and implement a proposal. Only the outcome is the
+DSWG's. Visible agreement from implementers and no sustained technical
+objection is the strongest case a proposal can bring to it.
 
-## What gets a proposal rejected
+## What gets a proposal declined
 
 Not to discourage anyone — these are just the patterns that come up:
 
@@ -54,10 +59,10 @@ Not to discourage anyone — these are just the patterns that come up:
 
 ## Status values
 
-`draft` · `under discussion` · `accepted` · `rejected` · `withdrawn` ·
-`superseded by NNNN`
+`draft` · `under discussion` · `adopted` · `deferred` · `declined` ·
+`withdrawn` · `superseded by NNNN`
 
-Accepted and rejected proposals both stay. The rejected ones save the next person
+Adopted and declined proposals both stay. The declined ones save the next person
 from re-proposing the same thing, and record why.
 
 ## Index

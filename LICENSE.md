@@ -1,9 +1,9 @@
 # Licensing
 
-Copyright © 2026 Rowing Industry Trade Association (RITA) and the RITA Data
+Copyright © 2026 Rowing Industry Trade Association (RITA) and the Rowing Data
 Standard contributors.
 
-The RITA Data Standard is an open extension of Garmin's FIT protocol. It is free
+The Rowing Data Standard is an open extension of Garmin's FIT protocol. It is free
 for anyone to read, use, implement and redistribute. No fee, royalty or RITA
 membership is required.
 
@@ -16,7 +16,7 @@ requires you to publish your own source code.
 | The specification: field definitions, code lists, guidance, examples and other prose | `spec/`, `registry/`, `proposals/`, `README.md` and other documentation | [CC BY 4.0](LICENSES/CC-BY-4.0.txt) |
 | Machine-readable files: schemas, templates, sample data and example implementations | `python/` and any other implementation directory, including test fixtures; any schema or template directory | [Apache 2.0](LICENSES/Apache-2.0.txt) |
 
-**Attribution under CC BY 4.0.** Credit "RITA Data Standard", link to this
+**Attribution under CC BY 4.0.** Credit "Rowing Data Standard", link to this
 repository, and say whether you changed the text. Field IDs, names, scales and
 units copied into an implementation as constants need no attribution beyond
 what the implementation's own licence already asks for.
@@ -36,11 +36,11 @@ as listed above. Opening an issue, a proposal or a pull request confirms you
 have the right to make the contribution on those terms, and that you agree to
 the patent commitment.
 
-## Names
+## Name
 
-"RITA" and "RITA Data Standard" are RITA's names. You may adapt and
-redistribute the text under CC BY 4.0, but a modified version may not be
-presented as the official RITA Data Standard.
+"RITA" is RITA's name. You may adapt and redistribute the text under CC BY 4.0,
+but a modified version may not be presented as the official standard or as
+endorsed by RITA.
 
 ## Garmin FIT
 

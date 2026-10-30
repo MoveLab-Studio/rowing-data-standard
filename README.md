@@ -128,8 +128,8 @@ implementation:
 
 No fee, royalty or RITA membership is required. Contributors also commit to
 royalty-free licensing of any patent claim that implementing the standard
-cannot avoid. "RITA Data Standard" is RITA's name, and a modified version may
-not be presented as the official standard. [`LICENSE.md`](LICENSE.md) gives the
+cannot avoid. A modified version may not be presented as the official standard
+or as endorsed by RITA. [`LICENSE.md`](LICENSE.md) gives the
 full terms, how to contribute under them, and the Garmin FIT notice.
 
 ## Hosting and neutrality

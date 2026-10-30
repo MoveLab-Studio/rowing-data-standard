@@ -16,7 +16,7 @@ it is provisional and open to change:
 | The specification text | **Draft v0.1** — not ratified |
 | Field IDs, scales and units | Proposed; may be renumbered or redefined |
 | Governance | **Undecided** — a small named editorial team, an open-source project, or open participation with named editors. The group's first decision |
-| Licensing | **Undecided** — no licence is granted yet, see [Licensing](#licensing) |
+| Licensing | CC BY 4.0 for the text and registry, Apache 2.0 for code and sample data. See [Licensing](#licensing) |
 | Where this repository ultimately lives | In progress — RITA adoption under active discussion, see [Hosting](#hosting-and-neutrality) |
 
 Do not build a shipping product against this text and expect it to hold. If you
@@ -115,15 +115,22 @@ not.
 
 ## Licensing
 
-**Unresolved, and it affects contributors.** There is deliberately no `LICENSE`
-file yet: the v0.1 text originates with Sander Roosendaal, and relicensing
-someone's document is not a call the repository host makes quietly.
+Licensing follows the RITA Data Standards Working Group charter. Both licences
+allow commercial use, and neither requires you to open-source your
+implementation:
 
-Until it is settled, nobody has a granted right to redistribute or translate the
-text, and no contributor licence is being asked for or granted. That is tolerable
-for a draft among participants and not tolerable for a published standard, so it
-needs deciding early. If it is a problem for you or your employer, say so on an
-issue and hold your contribution.
+- **Specification, field registry and other prose**:
+  [CC BY 4.0](LICENSES/CC-BY-4.0.txt). Copy, translate and adapt it, with
+  attribution.
+- **Code and machine-readable files** — example implementations, schemas,
+  templates and sample data such as the FIT test fixtures:
+  [Apache 2.0](LICENSES/Apache-2.0.txt).
+
+No fee, royalty or RITA membership is required. Contributors also commit to
+royalty-free licensing of any patent claim that implementing the standard
+cannot avoid. A modified version may not be presented as the official standard
+or as endorsed by RITA. [`LICENSE.md`](LICENSE.md) gives the
+full terms, how to contribute under them, and the Garmin FIT notice.
 
 ## Hosting and neutrality
 

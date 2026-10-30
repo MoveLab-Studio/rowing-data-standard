@@ -7,15 +7,14 @@ The RITA Data Standard is an open extension of Garmin's FIT protocol. It is free
 for anyone to read, use, implement and redistribute. No fee, royalty or RITA
 membership is required.
 
-The repository is under three licences, by kind of content, following the RITA
-Data Standards Working Group charter. Each one allows commercial use, and none
-of them requires you to publish your own source code.
+The repository is under two licences, by kind of content, following the RITA
+Data Standards Working Group charter. Both allow commercial use, and neither
+requires you to publish your own source code.
 
 | What | Paths | Licence |
 |---|---|---|
 | The specification: field definitions, code lists, guidance, examples and other prose | `spec/`, `registry/`, `proposals/`, `README.md` and other documentation | [CC BY 4.0](LICENSES/CC-BY-4.0.txt) |
-| Machine-readable files: schemas, templates and sample data | Test fixtures, and any schema or template directory | [Apache 2.0](LICENSES/Apache-2.0.txt) |
-| Example implementations | `python/` and any other implementation directory, except their fixtures | [MIT](LICENSES/MIT.txt) |
+| Machine-readable files: schemas, templates, sample data and example implementations | `python/` and any other implementation directory, including test fixtures; any schema or template directory | [Apache 2.0](LICENSES/Apache-2.0.txt) |
 
 **Attribution under CC BY 4.0.** Credit "RITA Data Standard", link to this
 repository, and say whether you changed the text. Field IDs, names, scales and

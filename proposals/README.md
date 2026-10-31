@@ -64,4 +64,4 @@ from re-proposing the same thing, and record why.
 
 | # | Title | Status |
 |---|---|---|
-| — | *No proposals yet.* | |
+| 0001 | [Remove WorkoutState](0001-remove-workout-state.md) | draft |

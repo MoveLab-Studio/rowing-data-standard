@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from .constants import RecordingStrategy, StrokeState, WorkoutState
+from .constants import LapIntensity, RecordingStrategy, StrokeState
 from .strokes import resolve_stroke_rate, stroke_counts
 
 
@@ -32,7 +32,6 @@ class Record:
     average_drive_force: float | None = None
     peak_drive_force: float | None = None
     average_boat_speed_mps: float | None = None
-    workout_state: WorkoutState | None = None
     stroke_work_j: int | None = None
     stroke_rate: float | None = None
     stroke_state: StrokeState | None = None
@@ -45,19 +44,13 @@ class Record:
             cadence=self.cadence,
         )
 
-    def resolved_workout_state(self, lap: Lap | None) -> WorkoutState | None:
-        """Lap intensity wins when the lap carries one."""
-        if lap is not None and lap.intensity is not None:
-            return lap.intensity
-        return self.workout_state
-
 
 @dataclass(frozen=True, slots=True)
 class Lap:
     start_time: datetime
     total_elapsed_s: float | None = None
     total_distance_m: float | None = None
-    intensity: WorkoutState | None = None
+    intensity: LapIntensity | None = None
     total_timer_s: float | None = None
 
 
@@ -87,7 +80,7 @@ class RowingSession:
         """
         total = 0.0
         for lap in self.laps:
-            if lap.intensity is WorkoutState.REST:
+            if lap.intensity is LapIntensity.REST:
                 continue
             timer = lap.total_timer_s
             if timer is None:
@@ -108,7 +101,6 @@ RECORD_DEVELOPER_ATTRS: Sequence[tuple[int, str]] = (
     (6, "average_drive_force"),
     (7, "peak_drive_force"),
     (8, "average_boat_speed_mps"),
-    (9, "workout_state"),
     (19, "stroke_work_j"),
     (96, "stroke_state"),
 )

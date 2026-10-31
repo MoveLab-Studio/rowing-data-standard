@@ -51,8 +51,12 @@ class StrokeState(IntEnum):
     RECOVERY = 4
 
 
-class WorkoutState(IntEnum):
-    """Record developer field ID 9, the native FIT intensity values."""
+class LapIntensity(IntEnum):
+    """What a lap was for: the value of the native FIT ``intensity`` field on a Lap.
+
+    This is not a developer field. It mirrors the FIT SDK's ``Intensity`` enum
+    so that the model does not depend on the SDK; the writer converts it back.
+    """
 
     ACTIVE = 0
     REST = 1

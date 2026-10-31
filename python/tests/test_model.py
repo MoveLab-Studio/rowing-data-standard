@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 import pytest
 
 from rowing_data import validate
-from rowing_data.constants import RecordingStrategy, WorkoutState
+from rowing_data.constants import LapIntensity, RecordingStrategy
 from rowing_data.model import Lap, Record, RowingSession
 
 
@@ -31,29 +31,14 @@ def test_session_start_and_stroke_counts() -> None:
     assert session.recording_strategy is RecordingStrategy.GPS_UPDATE
 
 
-def test_workout_state_enum_matches_fit_intensity() -> None:
-    assert WorkoutState.ACTIVE == 0
-    assert WorkoutState.REST == 1
-    assert WorkoutState.WARMUP == 2
-    assert WorkoutState.COOLDOWN == 3
-    assert WorkoutState.RECOVERY == 4
-    assert WorkoutState.INTERVAL == 5
-    assert WorkoutState.OTHER == 6
-
-
-def test_lap_intensity_wins_when_workout_state_disagrees() -> None:
-    record = Record(
-        timestamp=_ts(0),
-        workout_state=WorkoutState.ACTIVE,
-        lap_index=0,
-    )
-    lap = Lap(start_time=_ts(0), intensity=WorkoutState.REST)
-    session = RowingSession(records=(record,), laps=(lap,))
-    assert record.resolved_workout_state(lap) is WorkoutState.REST
-    issues = validate(session)
-    assert any(
-        issue.code == "workout_state" and issue.level == "warning" for issue in issues
-    )
+def test_lap_intensity_enum_matches_fit_intensity() -> None:
+    assert LapIntensity.ACTIVE == 0
+    assert LapIntensity.REST == 1
+    assert LapIntensity.WARMUP == 2
+    assert LapIntensity.COOLDOWN == 3
+    assert LapIntensity.RECOVERY == 4
+    assert LapIntensity.INTERVAL == 5
+    assert LapIntensity.OTHER == 6
 
 
 def test_empty_session_without_start_time_raises() -> None:
@@ -69,23 +54,23 @@ def test_moving_time_sums_every_lap_except_rest() -> None:
             Lap(
                 start_time=_ts(0),
                 total_elapsed_s=100.0,
-                intensity=WorkoutState.WARMUP,
+                intensity=LapIntensity.WARMUP,
             ),
             Lap(
                 start_time=_ts(10),
                 total_elapsed_s=60.0,
                 total_timer_s=50.0,
-                intensity=WorkoutState.INTERVAL,
+                intensity=LapIntensity.INTERVAL,
             ),
             Lap(
                 start_time=_ts(20),
                 total_elapsed_s=90.0,
-                intensity=WorkoutState.REST,
+                intensity=LapIntensity.REST,
             ),
             Lap(
                 start_time=_ts(30),
                 total_elapsed_s=30.0,
-                intensity=WorkoutState.RECOVERY,
+                intensity=LapIntensity.RECOVERY,
             ),
         ),
     )
@@ -93,7 +78,7 @@ def test_moving_time_sums_every_lap_except_rest() -> None:
 
 
 def test_rowing_in_a_rest_lap_is_flagged() -> None:
-    laps = (Lap(start_time=_ts(0), intensity=WorkoutState.REST),)
+    laps = (Lap(start_time=_ts(0), intensity=LapIntensity.REST),)
     rowing = Record(timestamp=_ts(1), stroke_rate=20.0, lap_index=0)
     idle = Record(timestamp=_ts(2), heart_rate=90, lap_index=0)
     issues = validate(RowingSession(records=(rowing, idle), laps=laps))

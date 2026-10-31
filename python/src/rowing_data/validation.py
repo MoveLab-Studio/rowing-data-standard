@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .codec import CodecError, encode
-from .constants import RecordingStrategy, WorkoutState
+from .constants import LapIntensity, RecordingStrategy
 from .fields import field_by_id, field_by_name
 from .model import NATIVE_RECORD_ATTRS, RECORD_DEVELOPER_ATTRS, Record, RowingSession
 
@@ -74,22 +74,7 @@ def _record_issues(record: Record, index: int, session: RowingSession) -> list[I
     lap = _lap_for(record, session)
     if (
         lap is not None
-        and lap.intensity is not None
-        and record.workout_state is not None
-        and record.workout_state != lap.intensity
-    ):
-        issues.append(
-            Issue(
-                "warning",
-                "workout_state",
-                "WorkoutState disagrees with lap intensity; the lap wins",
-                index,
-            )
-        )
-
-    if (
-        lap is not None
-        and lap.intensity is WorkoutState.REST
+        and lap.intensity is LapIntensity.REST
         and _is_rowing(record)
     ):
         issues.append(

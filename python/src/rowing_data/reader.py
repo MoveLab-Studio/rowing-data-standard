@@ -13,9 +13,9 @@ from .constants import (
     APPLICATION_ID,
     CADENCE256_FIELD_ID,
     PROTOCOL_VERSION,
+    LapIntensity,
     RecordingStrategy,
     StrokeState,
-    WorkoutState,
 )
 from .fields import FieldDef, field_by_id, field_by_name
 from .model import ATTR_BY_FIELD_ID, Lap, Record, RowingSession
@@ -293,7 +293,7 @@ def _laps(messages: list) -> tuple[list[Lap], list[Issue]]:
         elapsed = message.get_value("total_elapsed_time")
         timer = message.get_value("total_timer_time")
         distance = message.get_value("total_distance")
-        intensity, issue = _as_workout_state(message.get_value("intensity"))
+        intensity, issue = _as_intensity(message.get_value("intensity"))
         if issue is not None:
             issues.append(issue)
         laps.append(
@@ -309,33 +309,33 @@ def _laps(messages: list) -> tuple[list[Lap], list[Issue]]:
     return laps, issues
 
 
-def _as_workout_state(value: object) -> tuple[WorkoutState | None, Issue | None]:
+def _as_intensity(value: object) -> tuple[LapIntensity | None, Issue | None]:
     if value is None:
         return None, None
     if isinstance(value, str):
         try:
-            return WorkoutState[value.strip().upper()], None
+            return LapIntensity[value.strip().upper()], None
         except KeyError:
-            return WorkoutState.OTHER, Issue(
+            return LapIntensity.OTHER, Issue(
                 "warning",
-                "workout_state",
-                f"WorkoutState {value!r} is unknown; treating as Other",
+                "intensity",
+                f"Lap intensity {value!r} is unknown; treating as Other",
             )
     try:
         number = int(value)
     except (TypeError, ValueError):
-        return WorkoutState.OTHER, Issue(
+        return LapIntensity.OTHER, Issue(
             "warning",
-            "workout_state",
-            f"WorkoutState {value!r} is unknown; treating as Other",
+            "intensity",
+            f"Lap intensity {value!r} is unknown; treating as Other",
         )
     try:
-        return WorkoutState(number), None
+        return LapIntensity(number), None
     except ValueError:
-        return WorkoutState.OTHER, Issue(
+        return LapIntensity.OTHER, Issue(
             "warning",
-            "workout_state",
-            f"WorkoutState {number} is above 6; treating as Other",
+            "intensity",
+            f"Lap intensity {number} is above 6; treating as Other",
         )
 
 
@@ -395,11 +395,6 @@ def _record(
         kwargs[attr] = decoded
 
     record_issues = [stroke_issue] if stroke_issue is not None else []
-    if kwargs.get("workout_state") is not None:
-        parsed, state_issue = _as_workout_state(kwargs["workout_state"])
-        kwargs["workout_state"] = parsed
-        if state_issue is not None:
-            record_issues.append(state_issue)
     return Record(**kwargs), record_issues  # type: ignore[arg-type]
 
 

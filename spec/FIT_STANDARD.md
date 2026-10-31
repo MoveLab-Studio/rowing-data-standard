@@ -205,7 +205,7 @@ Producers SHOULD use these native FIT fields for rowing data:
 
 How a workout is divided into Session, Lap and Split messages follows the FIT activity file conventions, see the [FIT activity file documentation](https://developer.garmin.com/fit/file-types/activity/) and the [encoding cookbook](https://developer.garmin.com/fit/cookbook/encoding-activity-files/). This standard adds two rules for rowing:
 
-1. **Intervals are marked with intensity.** Producers SHOULD write each work and rest interval as its own Lap, and MUST set the native `intensity` field on every Lap they write (`active` for work, `rest` for rest; the full list is under WorkoutState in §5.1).
+1. **Intervals are marked with intensity.** Producers SHOULD write each work and rest interval as its own Lap, and MUST set the native `intensity` field on every Lap they write (`active` for work, `rest` for rest, or another value of the FIT `intensity` enum).
 2. **Active laps add up to moving time.** Rest and pauses MUST NOT be included in a Lap with `intensity=active`, so that a consumer gets the moving time by summing `total_timer_time` over the active Laps.
 
 A common convention for grouping laps into workouts and splits is expected in a later version.
@@ -223,7 +223,6 @@ A common convention for grouping laps into workouts and splits is expected in a 
 | AverageDriveForce | 6 | UINT16 | 10 | N | Average force during drive phase | 200-600 N |
 | PeakDriveForce | 7 | UINT16 | 10 | N | Peak force during drive phase | 400-1200 N |
 | AverageBoatSpeed | 8 | UINT16 | 100 | m/s | Average boat speed during stroke | 3-6 m/s |
-| WorkoutState | 9 | UINT8 | 1 | | Training intensity of the record | See WorkoutState values below |
 | StrokeWork | 19 | UINT16 | 1 | J | Work done over full stroke cycle | 100-500 J |
 | StrokeState | 96 | UINT8 | 1 | | Phase of the stroke at record time | See StrokeState values below |
 
@@ -233,26 +232,6 @@ A common convention for grouping laps into workouts and splits is expected in a 
 - **AverageBoatSpeed**: Scale 100 (0.01 m/s, maximum 655.35 m/s). A scale of 1000, matching native `enhanced_speed`, is not possible: the `scale` of a FIT field description is a single byte.
 - **StrokeWork**: Energy over complete stroke cycle (not drive-only). Equivalent to average power × stroke period.
 - **Stroke rate** is carried by the native `cadence` and `cadence256` fields (§4), not by a developer field. Producers MUST NOT write native `fractional_cadence`: common platforms ignore it, and `cadence256` carries the same information.
-
-**WorkoutState values:**
-
-WorkoutState uses the values of the native FIT `intensity` enum, so a producer can copy them from the lap and a consumer can interpret them the same way.
-
-| Value | Name | Meaning |
-|-------|------|---------|
-| 0 | Active | Working |
-| 1 | Rest | Stationary; no rowing |
-| 2 | Warmup | Warm-up |
-| 3 | Cooldown | Cool-down |
-| 4 | Recovery | Light rowing between work intervals |
-| 5 | Interval | Work interval of a structured workout |
-| 6 | Other | None of the above |
-
-**WorkoutState rules:**
-
-- Producers SHOULD distinguish Rest from Recovery: during Recovery the athlete is still moving, and consumers SHOULD NOT hide data recorded during it.
-- When a Lap message carries native `intensity`, producers SHOULD write the same value in WorkoutState on the records within that lap. If they disagree, consumers MUST use the Lap `intensity`.
-- Values above 6 are reserved. Consumers SHOULD treat an unknown value as Other.
 
 **StrokeState values:**
 

@@ -31,7 +31,8 @@ because files carrying it already exist.
 
 | Range | Purpose | Status |
 |---|---|---|
-| 0–9, 19 | Core rowing metrics | Assigned (see below) |
+| 0–3, 6–8, 19 | Core rowing metrics | Assigned (see below) |
+| 9 | — | **Reserved** (was `WorkoutState`, removed; never reused) |
 | 10 | `RecordingStrategy` (`session`-level) | Assigned |
 | 11–18 | Oarlock metrics, single/summary | Assigned |
 | 20–59 | Future curve data | **Reserved** |
@@ -69,7 +70,6 @@ Free capacity today: **104 fields** in 93 and 97–199, plus 43 reserved in 212�
 | 6 | `AverageDriveForce` | UINT16 | 10 | N | Average force over the drive |
 | 7 | `PeakDriveForce` | UINT16 | 10 | N | Peak force over the drive |
 | 8 | `AverageBoatSpeed` | UINT16 | 100 | m/s | Averaged over the stroke |
-| 9 | `WorkoutState` | UINT8 | 1 | — | Values of the native FIT `intensity` enum: `0` Active, `1` Rest, `2` Warmup, `3` Cooldown, `4` Recovery, `5` Interval, `6` Other |
 | 19 | `StrokeWork` | UINT16 | 1 | J | Full stroke cycle, not drive-only |
 | 96 | `StrokeState` | UINT8 | 1 | — | `0` Unknown, `1` Waiting, `2` Drive, `3` Dwell, `4` Recovery. Only with `RecordingStrategy` TimeSampled |
 

@@ -51,8 +51,8 @@ class StrokeState(IntEnum):
     RECOVERY = 4
 
 
-class WorkoutState(IntEnum):
-    """Record developer field ID 9, the native FIT intensity values."""
+class LapIntensity(IntEnum):
+    """Lap intensity: the native FIT ``intensity`` enum values."""
 
     ACTIVE = 0
     REST = 1

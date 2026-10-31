@@ -35,10 +35,9 @@ newtons, written when set.
 - Dual-oarlock 200–211
 - In-stroke axis metadata 90–92, curve arrays, curve summaries, `.instroke.json`
 
-`WorkoutState` (ID 9) uses the FIT intensity values: 0 Active, 1 Rest, 2 Warmup,
-3 Cooldown, 4 Recovery, 5 Interval, 6 Other. An unknown value is read as Other.
-When a lap's `intensity` disagrees with a record, the lap wins. Every lap
-written here sets native `intensity`. A session with no laps is written as one
+Lap `intensity` uses the FIT intensity values (`LapIntensity`): 0 Active,
+1 Rest, 2 Warmup, 3 Cooldown, 4 Recovery, 5 Interval, 6 Other. An unknown value
+is read as Other. Every lap written here sets native `intensity`. A session with no laps is written as one
 active lap. `RowingSession.moving_time_s()` sums timer time over every lap except
 `Rest`, and `validate` warns about rowing data inside a rest lap (light rowing is
 `Recovery`).

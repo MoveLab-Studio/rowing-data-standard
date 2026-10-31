@@ -34,8 +34,8 @@ from .constants import (
     CADENCE256_SCALE,
     CYCLE_LENGTH16_SCALE,
     PROTOCOL_VERSION,
+    LapIntensity,
     RecordingStrategy,
-    WorkoutState,
 )
 from .fields import BaseType, FieldDef, field_by_id, field_by_name
 from .model import (
@@ -164,7 +164,7 @@ def write_fit(session: RowingSession, path: str | Path) -> None:
     builder.build().to_file(str(path))
 
 
-def _fit_intensity(intensity: WorkoutState | None) -> Intensity:
+def _fit_intensity(intensity: LapIntensity | None) -> Intensity:
     if intensity is None:
         raise ValueError("every lap must set intensity")
     return Intensity(int(intensity))

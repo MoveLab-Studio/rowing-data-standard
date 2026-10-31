@@ -6,8 +6,8 @@ from .constants import (
     APPLICATION_UUID,
     PROTOCOL_VERSION,
     STANDARD_VERSION,
+    LapIntensity,
     StrokeState,
-    WorkoutState,
 )
 from .fields import (
     DEVELOPER_FIELDS,
@@ -35,7 +35,7 @@ __all__ = [
     "RowingSession",
     "STANDARD_VERSION",
     "StrokeState",
-    "WorkoutState",
+    "LapIntensity",
     "decode",
     "encode",
     "field_by_id",

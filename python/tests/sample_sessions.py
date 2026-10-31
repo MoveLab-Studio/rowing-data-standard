@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from rowing_data.constants import RecordingStrategy, WorkoutState
+from rowing_data.constants import LapIntensity, RecordingStrategy
 from rowing_data.model import Lap, Record, RowingSession
 
 
@@ -21,7 +21,7 @@ def stroke_boundary_session() -> RowingSession:
                 start_time=_ts(0),
                 total_elapsed_s=4.0,
                 total_distance_m=20.0,
-                intensity=WorkoutState.ACTIVE,
+                intensity=LapIntensity.ACTIVE,
             ),
         ),
         records=(

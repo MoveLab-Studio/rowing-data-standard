@@ -83,7 +83,6 @@ def test_uint16_upper_bound_accepted() -> None:
     ("name", "invalid"),
     [
         ("StrokeWork", 65535),  # UINT16
-        ("WorkoutState", 255),  # UINT8
     ],
 )
 def test_invalid_value_is_never_written_as_a_measurement(

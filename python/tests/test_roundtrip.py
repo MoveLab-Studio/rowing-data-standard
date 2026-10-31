@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from rowing_data import read_fit, validate, write_fit
-from rowing_data.constants import RecordingStrategy, StrokeState, WorkoutState
+from rowing_data.constants import LapIntensity, RecordingStrategy, StrokeState
 from rowing_data.model import Lap, Record, RowingSession
 from sample_sessions import gps_update_session, stroke_boundary_session
 
@@ -34,24 +34,21 @@ def test_roundtrip_work_and_rest_laps(tmp_path: Path) -> None:
     rest = datetime(2026, 1, 1, 12, 1, tzinfo=UTC)
     original = RowingSession(
         records=(
-            Record(timestamp=start, workout_state=WorkoutState.INTERVAL),
-            Record(timestamp=rest, workout_state=WorkoutState.REST),
+            Record(timestamp=start),
+            Record(timestamp=rest),
         ),
         laps=(
-            Lap(start_time=start, intensity=WorkoutState.INTERVAL),
-            Lap(start_time=rest, intensity=WorkoutState.REST),
+            Lap(start_time=start, intensity=LapIntensity.INTERVAL),
+            Lap(start_time=rest, intensity=LapIntensity.REST),
         ),
     )
     path = tmp_path / "laps.fit"
     write_fit(original, path)
     loaded = read_fit(path)
     assert [lap.intensity for lap in loaded.laps] == [
-        WorkoutState.INTERVAL,
-        WorkoutState.REST,
+        LapIntensity.INTERVAL,
+        LapIntensity.REST,
     ]
-    assert loaded.records[0].resolved_workout_state(loaded.laps[0]) is (
-        WorkoutState.INTERVAL
-    )
 
 
 def test_synthetic_lap_is_active(tmp_path: Path) -> None:
@@ -63,22 +60,7 @@ def test_synthetic_lap_is_active(tmp_path: Path) -> None:
         path,
     )
     loaded = read_fit(path)
-    assert loaded.laps[0].intensity is WorkoutState.ACTIVE
-
-
-def test_roundtrip_workout_state(tmp_path: Path) -> None:
-    original = RowingSession(
-        records=(
-            Record(
-                timestamp=datetime(2026, 1, 1, tzinfo=UTC),
-                workout_state=WorkoutState.RECOVERY,
-            ),
-        )
-    )
-    path = tmp_path / "state.fit"
-    write_fit(original, path)
-    loaded = read_fit(path)
-    assert loaded.records[0].workout_state is WorkoutState.RECOVERY
+    assert loaded.laps[0].intensity is LapIntensity.ACTIVE
 
 
 def test_roundtrip_slip_and_wash_thresholds(tmp_path: Path) -> None:
@@ -234,9 +216,9 @@ def test_roundtrip_timer_time_and_moving_time(tmp_path: Path) -> None:
                 start_time=start,
                 total_elapsed_s=60.0,
                 total_timer_s=55.0,
-                intensity=WorkoutState.INTERVAL,
+                intensity=LapIntensity.INTERVAL,
             ),
-            Lap(start_time=rest, total_elapsed_s=30.0, intensity=WorkoutState.REST),
+            Lap(start_time=rest, total_elapsed_s=30.0, intensity=LapIntensity.REST),
         ),
     )
     path = tmp_path / "moving.fit"
